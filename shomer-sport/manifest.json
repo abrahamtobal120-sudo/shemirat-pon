@@ -56,7 +56,7 @@
       "js": [
         "content/sport-autoplay.js"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ],
   "declarative_net_request": {

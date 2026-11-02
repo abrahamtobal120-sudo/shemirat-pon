@@ -51,6 +51,15 @@
       ],
       "run_at": "document_start",
       "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/results*"
+      ],
+      "js": [
+        "content/sport-autoplay.js"
+      ],
+      "run_at": "document_start"
     }
   ],
   "declarative_net_request": {

@@ -46,7 +46,7 @@ function Step-Ort {
     Push-Location $tmp
     try {
       & npm pack "onnxruntime-web@$OrtVersion" --silent | Out-Null; Assert-Ok
-      $tgz = (Get-ChildItem -Filter 'onnxruntime-web-*.tgz' | Select-Object -First 1).FullName
+      $tgz = (Get-ChildItem -Filter 'onnxruntime-web-*.tgz' | Select-Object -First 1).Name
       & tar xzf $tgz; Assert-Ok
     } finally { Pop-Location }
     $lib = Join-Path $Root 'lib'

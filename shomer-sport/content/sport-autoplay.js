@@ -11,16 +11,23 @@
   'use strict';
 
   if (location.hostname !== 'www.youtube.com' || location.pathname !== '/results') return;
-  if (new URLSearchParams(location.search).get('shomer_play') !== '1') return;
+  // YouTube borra los parámetros desconocidos de la URL al cargar, así que la
+  // marca se guarda en sessionStorage (corre en document_start, antes del borrado).
+  const KEY = 'shomer_play';
+  if (new URLSearchParams(location.search).get(KEY) === '1') sessionStorage.setItem(KEY, '1');
+  if (sessionStorage.getItem(KEY) !== '1') return;
+  sessionStorage.removeItem(KEY);
+
+  // Clases viejas (badge-style-type-*) y nuevas (…StyleTypeVerified…) de YouTube.
+  const VERIFIED = '[class*="badge-style-type-verified"], [class*="StyleTypeVerified"]';
 
   const TIMEOUT_MS = 15000;
   const started = Date.now();
 
   function pick() {
     for (const item of document.querySelectorAll('ytd-video-renderer')) {
-      const verified = item.querySelector(
-        '#channel-info .badge-style-type-verified, #channel-info .badge-style-type-verified-artist, ' +
-        'ytd-channel-name .badge-style-type-verified, ytd-channel-name .badge-style-type-verified-artist');
+      const channel = item.querySelector('#channel-info ytd-channel-name') || item.querySelector('ytd-channel-name');
+      const verified = channel && channel.querySelector(VERIFIED);
       const link = item.querySelector('a#video-title[href^="/watch"]');
       if (verified && link) return link;
     }
