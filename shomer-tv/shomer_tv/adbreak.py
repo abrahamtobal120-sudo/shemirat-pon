@@ -12,8 +12,6 @@ import json
 import os
 import time
 
-import numpy as np
-
 CONTROL_DIR = ".control"
 FONT_PATHS = ["/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
               "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
@@ -65,8 +63,9 @@ class AdWatcher:
         return bool(self.state.get("ad"))
 
 
-def render_slate(w: int, h: int, title="Pausa comercial", subtitle="El partido continúa enseguida") -> np.ndarray:
+def render_slate(w: int, h: int, title="Pausa comercial", subtitle="El partido continúa enseguida"):
     """Pantalla fija (RGB) que se emite en lugar del anuncio."""
+    import numpy as np
     from PIL import Image, ImageDraw, ImageFont
 
     img = Image.new("RGB", (w, h), (15, 19, 24))

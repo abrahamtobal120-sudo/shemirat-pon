@@ -31,6 +31,7 @@
   <p class="note">Pulsa <b>Tapar anuncio</b> cuando empiece la pausa comercial: los clientes ven una pantalla
     fija y el audio va en silencio. Pulsa <b>Volver al partido</b> cuando termine.
     Atajos: <b>A</b> tapa y <b>P</b> vuelve al partido en el primer canal.</p>
+  <div id="signals"></div>
   <div id="list"></div>
 </main>
 <script>
@@ -51,6 +52,21 @@ async function setAd(name, on, minutes) {
 }
 
 function render() {
+  const signals = document.getElementById('signals');
+  signals.textContent = '';
+  const ingest = chans.filter(c => c.ingest);
+  if (ingest.length) {
+    const h = document.createElement('p');
+    h.className = 'note';
+    h.textContent = 'Cada canal escucha en su propio puerto. En OBS, la señal va aquí:';
+    signals.append(h);
+    for (const c of ingest) {
+      const p = document.createElement('p');
+      p.className = 'note';
+      p.textContent = (c.title || c.name) + ' ← ' + c.ingest;
+      signals.append(p);
+    }
+  }
   list.textContent = '';
   const live = chans.filter(c => !c.vod);
   if (!live.length) { list.innerHTML = '<p class="note">No hay canales en vivo.</p>'; return; }
@@ -59,7 +75,7 @@ function render() {
     d.className = 'ch' + (c.ad ? ' ad' : '');
     const left = c.ad_until ? ' · se quita sola en ' + Math.max(0, Math.round((c.ad_until - Date.now() / 1000) / 60 * 10) / 10) + ' min' : '';
     d.innerHTML = '<div class="top"><span class="name"></span><span class="state"></span></div><div class="row"></div>';
-    d.querySelector('.name').textContent = c.name;
+    d.querySelector('.name').textContent = c.title || c.name;
     d.querySelector('.state').textContent = c.ad ? 'ANUNCIO TAPADO' + left : (c.state === 'live' ? 'Partido al aire' : 'Sin señal');
     const row = d.querySelector('.row');
     const b = (txt, cls, fn) => { const x = document.createElement('button'); x.textContent = txt; x.className = cls; x.onclick = fn; row.append(x); };

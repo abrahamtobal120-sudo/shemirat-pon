@@ -38,6 +38,12 @@
   .auth input, .auth button { display:block; width:100%; margin-top:12px; }
   .auth a { color:var(--acc); cursor:pointer; }
   .err { color:#ff8a8f; font-size:14px; min-height:1.2em; margin-top:10px; }
+  .qbar { display:flex; align-items:center; gap:12px; margin-top:10px; color:var(--mut); font-size:14px; }
+  .qbar select { margin-left:8px; background:var(--card); color:var(--fg); border:1px solid #334; border-radius:6px; padding:6px 8px; font-size:14px; }
+  #quality-now { color:var(--fg); }
+  .ch .id { display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .ch small { color:var(--mut); font-size:12px; font-weight:400; }
+  .tag.wait { background:#3a3420; color:#f3c27a; }
 </style>
 </head>
 <body>
@@ -82,12 +88,21 @@
       <div class="empty" id="empty">Elige un canal de la lista</div>
     </div>
     <div id="now"></div>
+    <div class="qbar">
+      <label>Calidad
+        <select id="quality" disabled>
+          <option value="-1">Automática</option>
+        </select>
+      </label>
+      <span id="quality-now"></span>
+    </div>
   </section>
   <aside>
     <h2>Canales</h2>
     <div id="list"></div>
     <p class="note">Todas las transmisiones pasan por el filtro antes de llegar aquí.
-      Llevan unos segundos de retraso respecto a la señal original.</p>
+      Llevan unos segundos de retraso respecto a la señal original.
+      La calidad baja sola si tu conexión no alcanza; también puedes fijarla.</p>
   </aside>
 </main>
 
@@ -98,9 +113,11 @@ const video = document.getElementById('video');
 const empty = document.getElementById('empty');
 const list = document.getElementById('list');
 const now = document.getElementById('now');
-let hls = null, current = null;
+let hls = null, current = null, channels = [];
+const quality = document.getElementById('quality');
+const qualityNow = document.getElementById('quality-now');
 
-const LABEL = { live: 'EN VIVO', ended: 'Terminado', down: 'Señal caída', starting: 'Iniciando', unknown: '—' };
+const LABEL = { live: 'EN VIVO', ended: 'Terminado', down: 'Señal caída', starting: 'Iniciando', waiting: 'Esperando', unknown: '—' };
 
 let me = null;  // respuesta de /api/me
 
@@ -113,7 +130,7 @@ async function api(path) {
 function show(id) {
   for (const x of ['app', 'keybox', 'login', 'signup', 'expired'])
     document.getElementById(x).style.display = x === id ? (x === 'app' ? '' : 'block') : 'none';
-  if (id !== 'app' && hls) { hls.destroy(); hls = null; video.removeAttribute('src'); }
+  if (id !== 'app') stopPlayback();
 }
 
 function showKeyBox() { show('keybox'); }
@@ -169,28 +186,105 @@ function render(chans) {
   for (const c of chans) {
     const b = document.createElement('button');
     b.className = 'ch' + (current === c.name ? ' sel' : '');
+    const id = document.createElement('span');
+    id.className = 'id';
     const n = document.createElement('span');
-    n.textContent = c.name;
+    n.textContent = c.title || c.name;
+    id.append(n);
+    if (c.variants && c.variants.length > 1) {
+      const q = document.createElement('small');
+      q.textContent = c.variants.map(v => v.name || v.resolution).join(' · ');
+      id.append(q);
+    }
     const t = document.createElement('span');
-    const st = c.vod ? 'ended' : c.state;
+    const waiting = !c.url;
+    const st = waiting ? 'waiting' : (c.vod ? 'ended' : c.state);
     t.className = 'tag ' + st;
-    t.textContent = c.vod ? 'Repetición' : c.ad ? 'EN VIVO · pausa' : (LABEL[st] || st);
-    b.append(n, t);
-    b.onclick = () => play(c);
+    t.textContent = waiting ? 'Esperando' : c.vod ? 'Repetición' : c.ad ? 'EN VIVO · pausa' : (LABEL[st] || st);
+    b.append(id, t);
+    b.onclick = () => c.url ? play(c) : wait(c);
     list.append(b);
   }
 }
 
+function levelLabel(level) {
+  if (level.name) return level.name;
+  if (level.height) return level.height + 'p';
+  return Math.round((level.bitrate || 0) / 1000) + ' kbps';
+}
+
+function qualityText() {
+  if (!hls || !hls.levels || !hls.levels.length) return '';
+  const auto = hls.autoLevelEnabled;
+  const idx = hls.currentLevel >= 0 ? hls.currentLevel : hls.loadLevel;
+  const level = hls.levels[idx];
+  if (!level) return auto ? 'Automática' : '';
+  const label = levelLabel(level);
+  return auto ? 'Automática · ' + label : label;
+}
+
+function fillQualities() {
+  quality.textContent = '';
+  const auto = document.createElement('option');
+  auto.value = '-1';
+  auto.textContent = 'Automática';
+  quality.append(auto);
+  hls.levels.forEach((level, i) => {
+    const o = document.createElement('option');
+    o.value = String(i);
+    const kbps = Math.round((level.bitrate || 0) / 1000);
+    o.textContent = levelLabel(level) + (kbps ? ' · ' + kbps + ' kbps' : '');
+    quality.append(o);
+  });
+  quality.value = '-1';
+  quality.disabled = false;
+}
+
+function resetQuality() {
+  quality.disabled = true;
+  quality.value = '-1';
+  qualityNow.textContent = '';
+}
+
+function stopPlayback() {
+  if (hls) { hls.destroy(); hls = null; }
+  video.removeAttribute('src');
+  try { video.load(); } catch (e) {}
+  resetQuality();
+}
+
+quality.onchange = () => {
+  if (!hls) return;
+  hls.currentLevel = Number(quality.value);
+  qualityNow.textContent = qualityText();
+};
+
+function wait(c) {
+  current = c.name;
+  now.textContent = (c.title || c.name) + ' · esperando señal';
+  empty.textContent = 'Este canal espera la señal del codificador.';
+  empty.style.display = 'flex';
+  stopPlayback();
+  render(channels);
+}
+
 function play(c) {
   current = c.name;
-  now.textContent = c.name + (c.vod ? ' · repetición' : '');
+  now.textContent = (c.title || c.name) + (c.vod ? ' · repetición' : ' · en vivo');
   empty.style.display = 'none';
-  if (hls) { hls.destroy(); hls = null; }
+  stopPlayback();
   if (window.Hls && Hls.isSupported()) {
-    hls = new Hls({ liveSyncDurationCount: 3, xhrSetup: (x) => { x.withCredentials = true; } });
+    hls = new Hls({
+      enableWorker: true,
+      capLevelToPlayerSize: true,
+      startLevel: -1,
+      liveSyncDurationCount: 3,
+      xhrSetup: (x) => { x.withCredentials = true; }
+    });
     hls.loadSource(c.url);
     hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+    hls.on(Hls.Events.MANIFEST_PARSED, () => { fillQualities(); video.play().catch(() => {}); });
+    hls.on(Hls.Events.LEVEL_SWITCHED, () => { qualityNow.textContent = qualityText(); });
     hls.on(Hls.Events.ERROR, (_, d) => {
       if (!d.fatal) return;
       if (d.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
@@ -199,13 +293,17 @@ function play(c) {
     });
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = c.url; // Safari / iPhone reproducen HLS de forma nativa
+    qualityNow.textContent = 'Automática';
     video.play().catch(() => {});
+  } else {
+    empty.textContent = 'Este navegador no puede reproducir HLS.';
+    empty.style.display = 'flex';
   }
-  refresh();
+  render(channels);
 }
 
 async function refresh() {
-  try { render(await api('/api/channels')); } catch (e) { /* sin acceso o sin red */ }
+  try { channels = await api('/api/channels'); render(channels); } catch (e) { /* sin acceso o sin red */ }
 }
 loadMe().then(() => { if (me.status === 200) refresh(); });
 setInterval(() => { if (me && me.status === 200) refresh(); }, 5000);

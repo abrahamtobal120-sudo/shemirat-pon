@@ -1,8 +1,9 @@
 """
 Uso:
+  python -m shomer_tv serve --port 8080 --open
+  python -m shomer_tv stack                         ← web + todos los canales de channels.json
   python -m shomer_tv channel --name canal1 --input rtmp://0.0.0.0:1935/live/canal1 --listen
   python -m shomer_tv channel --name final --input partido.mp4 --vod
-  python -m shomer_tv serve --port 8080
   python -m shomer_tv ad canal1 on [--minutes 3]      ← pausa comercial (tapa el anuncio)
   python -m shomer_tv ad canal1 off
   python -m shomer_tv users list                       ← clientes y suscripciones
@@ -11,15 +12,16 @@ Uso:
 import argparse
 import logging
 import os
+import subprocess
 import sys
+import threading
 import time
-
-from .detector import FilterOptions
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_MODELS = os.path.join(os.path.dirname(ROOT), "shomer-sport", "models")
 DEFAULT_OUT = os.path.join(ROOT, "hls")
 DEFAULT_DB = os.path.join(ROOT, "data", "accounts.db")
+DEFAULT_CHANNELS = os.path.join(ROOT, "channels.json")
 
 
 def main(argv=None):
@@ -42,6 +44,8 @@ def main(argv=None):
     c.add_argument("--min-person-frac", type=float, default=0.07)
     c.add_argument("--dilate", type=int, default=6)
     c.add_argument("--bitrate", default="2500k")
+    c.add_argument("--no-abr", action="store_true",
+                   help="una sola calidad; por defecto se publican 720p, 480p y 360p")
     c.add_argument("--preset", default="veryfast")
     c.add_argument("--threads", type=int, default=0)
     c.add_argument("--no-auto-ads", action="store_true",
@@ -58,6 +62,17 @@ def main(argv=None):
                    help="clave del operador para /control y /admin (sin ella, solo desde localhost)")
     s.add_argument("--db", default=DEFAULT_DB, help="base de datos de cuentas de clientes")
     s.add_argument("--open", action="store_true", help="sin cuentas: cualquiera puede ver los canales")
+    s.add_argument("--channels", default=DEFAULT_CHANNELS,
+                   help="catálogo JSON: títulos y canales que aún no tienen señal")
+
+    k = sub.add_parser("stack", help="servidor web y todos los canales del catálogo")
+    k.add_argument("--config", default=DEFAULT_CHANNELS)
+    k.add_argument("--out", default=DEFAULT_OUT)
+    k.add_argument("--port", type=int)
+    k.add_argument("--host")
+    k.add_argument("--open", action="store_true", help="sin cuentas, también si el catálogo no lo pide")
+    k.add_argument("--admin-key", default=os.environ.get("SHOMER_ADMIN_KEY"))
+    k.add_argument("--db", default=DEFAULT_DB)
 
     u = sub.add_parser("users", help="clientes y suscripciones")
     u.add_argument("action", choices=["list", "extend", "delete"])
@@ -77,9 +92,14 @@ def main(argv=None):
                         format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 
     if a.cmd == "serve":
+        from .catalog import catalog_path_or_none
         from .server import serve
-        serve(a.out, a.host, a.port, a.access_key, a.admin_key, None if a.open else a.db)
+        cat = catalog_path_or_none(a.channels)
+        serve(a.out, a.host, a.port, a.access_key, a.admin_key, None if a.open else a.db,
+              list(cat.channels) if cat else None)
         return 0
+    if a.cmd == "stack":
+        return _stack(a)
     if a.cmd == "users":
         from datetime import datetime
         from .accounts import Accounts
@@ -110,12 +130,13 @@ def main(argv=None):
 
     if not a.name.replace("-", "").replace("_", "").isalnum():
         p.error("--name solo admite letras, números, '-' y '_'")
+    from .detector import FilterOptions
     from .pipeline import Channel, ChannelConfig
     cfg = ChannelConfig(
         name=a.name, input=a.input, out_root=a.out, models_dir=a.models, height=a.height,
         analysis_fps=a.analysis_fps, max_gap_sec=a.max_gap, vod=a.vod, realtime=a.realtime,
-        listen=a.listen, cover=a.cover, bitrate=a.bitrate, preset=a.preset, threads=a.threads,
-        auto_ads=not a.no_auto_ads,
+        listen=a.listen, cover=a.cover, bitrate=a.bitrate, abr=not a.no_abr, preset=a.preset,
+        threads=a.threads, auto_ads=not a.no_auto_ads,
         filter=FilterOptions(level=a.level, female_threshold=a.female_threshold,
                              min_person_frac=a.min_person_frac, mask_dilate_px=a.dilate))
     while True:
@@ -131,6 +152,38 @@ def main(argv=None):
             return 0
         logging.info("[%s] reintentando en 5 s…", a.name)
         time.sleep(5)
+
+
+def _stack(a) -> int:
+    """Sirve la web y arranca un proceso por canal del catálogo."""
+    from .catalog import channel_command, load_catalog
+    from .server import serve
+
+    if not os.path.isfile(a.config):
+        logging.error("no está el catálogo %s", a.config)
+        return 1
+    cat = load_catalog(a.config)
+    host = a.host or cat.host
+    port = a.port or cat.port
+    open_access = a.open or cat.open_access
+    specs = list(cat.channels)
+    threading.Thread(
+        target=serve,
+        args=(a.out, host, port, None, a.admin_key, None if open_access else a.db, specs),
+        daemon=True,
+    ).start()
+    logging.info("Web: http://localhost:%d", port)
+    procs = []
+    for spec in specs:
+        logging.info("Canal %s ← %s", spec.title, spec.input)
+        procs.append(subprocess.Popen(channel_command(spec, a.out, sys.executable), cwd=ROOT))
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        for proc in procs:
+            proc.terminate()
+        return 0
 
 
 if __name__ == "__main__":
