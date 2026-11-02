@@ -1,1 +1,1 @@
-{"name": "canal-1", "state": "live", "persons": [], "analysis_ms": 97, "analysis_fps": 1.67, "speed": 0.98, "frames": 2096, "filtered_frames": 0, "ad": false, "ad_frames": 0, "updated": 1793583317.276766, "ad_source": null, "ad_detector": 0.99, "lag_sec": 2.3, "out_fps": 25.5}
+{"name": "canal-1", "state": "live", "persons": [], "analysis_ms": 85, "analysis_fps": 2.03, "speed": 0.98, "frames": 2231, "filtered_frames": 0, "ad": false, "ad_frames": 0, "updated": 1793583325.446174, "ad_source": null, "ad_detector": 1.0, "lag_sec": 1.8, "out_fps": 25.5}
