@@ -93,7 +93,32 @@ def render_master(variants: list[Variant]) -> str:
     return "\n".join(lines)
 
 
-_ATTR = re.compile(r'([A-Z0-9-]+)=(?:"([^"]*)"|([^,]*))')
+def _stream_attrs(line: str) -> dict[str, str]:
+    """Atributos de `#EXT-X-STREAM-INF`, respetando comillas (CODECS trae una coma)."""
+    body = line.split(":", 1)[1]
+    attrs = {}
+    i, n = 0, len(body)
+    while i < n:
+        while i < n and body[i] in ", \t":
+            i += 1
+        eq = body.find("=", i)
+        if eq < 0:
+            break
+        key = body[i:eq].strip()
+        i = eq + 1
+        if i < n and body[i] == '"':
+            end = body.find('"', i + 1)
+            if end < 0:
+                end = n - 1
+            attrs[key] = body[i + 1:end]
+            i = end + 1
+        else:
+            end = body.find(",", i)
+            if end < 0:
+                end = n
+            attrs[key] = body[i:end].strip()
+            i = end
+    return attrs
 
 
 def parse_master(text: str) -> list[dict]:
@@ -105,7 +130,7 @@ def parse_master(text: str) -> list[dict]:
     while i < len(lines):
         line = lines[i]
         if line.startswith("#EXT-X-STREAM-INF:"):
-            attrs = {k: (q if q is not None else r) for k, q, r in _ATTR.findall(line)}
+            attrs = _stream_attrs(line)
             uri = ""
             j = i + 1
             while j < len(lines):
