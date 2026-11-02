@@ -1,3 +1,21 @@
+# Shomer Web
+
+Versión general de Shomer Sport para **todo el navegador**: además de los videos,
+revisa **todas las imágenes** de todas las páginas.
+
+- Cada imagen se ve desenfocada hasta que el filtro la revisa (se analizan al acercarse a la pantalla).
+- Sin mujeres detectadas → se muestra normal. Con contenido a cubrir → se sustituye por una copia
+  con esas zonas cubiertas (según el nivel Normal/Estricto y el tipo de cubierta).
+- Si una imagen no se puede analizar, se queda desenfocada (a prueba de fallos).
+- Iconos e imágenes diminutas no se analizan. Los iframes pequeños (anuncios) no cargan el motor:
+  sus imágenes grandes se quedan desenfocadas.
+- No cubre imágenes de fondo CSS ni dibujos en `<canvas>`.
+- Interruptor "Filtrar imágenes" en el panel. Firefox: `scripts/build-firefox.sh` → `dist/shomer-web-firefox.xpi`.
+
+Lo que sigue es la documentación original de Shomer Sport (sigue aplicando a los videos).
+
+---
+
 # Shomer Sport 🛡️⚽
 
 Extensión de Chrome/Edge (Manifest V3) para ver partidos con **recato (tzniut)**:
