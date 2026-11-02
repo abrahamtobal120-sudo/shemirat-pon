@@ -57,7 +57,8 @@ def main(argv=None):
     s.add_argument("--admin-key", default=os.environ.get("SHOMER_ADMIN_KEY"),
                    help="clave del operador para /control y /admin (sin ella, solo desde localhost)")
     s.add_argument("--db", default=DEFAULT_DB, help="base de datos de cuentas de clientes")
-    s.add_argument("--open", action="store_true", help="sin cuentas: cualquiera puede ver los canales")
+    s.add_argument("--accounts", action="store_true",
+                   help="pedir cuenta con suscripción activa (por defecto, cualquiera puede ver los canales)")
 
     u = sub.add_parser("users", help="clientes y suscripciones")
     u.add_argument("action", choices=["list", "extend", "delete"])
@@ -78,7 +79,7 @@ def main(argv=None):
 
     if a.cmd == "serve":
         from .server import serve
-        serve(a.out, a.host, a.port, a.access_key, a.admin_key, None if a.open else a.db)
+        serve(a.out, a.host, a.port, a.access_key, a.admin_key, a.db if a.accounts else None)
         return 0
     if a.cmd == "users":
         from datetime import datetime
