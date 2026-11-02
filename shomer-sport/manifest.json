@@ -31,7 +31,10 @@
   ],
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
       "js": [
         "common/i18n.js",
         "common/settings.js",
@@ -40,9 +43,20 @@
         "content/video-filter.js",
         "content/content.js"
       ],
-      "css": ["content/overlay.css"],
+      "css": [
+        "content/overlay.css"
+      ],
       "run_at": "document_start",
       "all_frames": true
+    },
+    {
+      "matches": [
+        "https://www.youtube.com/results*"
+      ],
+      "js": [
+        "content/sport-autoplay.js"
+      ],
+      "run_at": "document_idle"
     }
   ],
   "declarative_net_request": {
@@ -56,8 +70,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["engine/engine.html"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "engine/engine.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "content_security_policy": {
