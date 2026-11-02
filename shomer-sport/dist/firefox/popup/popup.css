@@ -141,3 +141,11 @@ button.link.danger { color: var(--danger); }
 main.locked { opacity: .45; pointer-events: none; filter: grayscale(.3); }
 
 footer { color: var(--muted); font-size: 11px; text-align: center; }
+.guide-link { display: block; text-align: center; font-weight: 600; color: var(--accent); text-decoration: none; }
+
+/* ------------------------------------------------------- Buscar deporte */
+.search form { margin: 0; }
+.search input { flex: 1; min-width: 0; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+.search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.quick { display: flex; flex-wrap: wrap; gap: 5px; margin-block-start: 8px; }
+.quick button { font-size: 12px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); cursor: pointer; }

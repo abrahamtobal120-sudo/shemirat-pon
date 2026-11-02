@@ -12,7 +12,7 @@ SERVER=$!
 trap 'kill $SERVER 2>/dev/null' EXIT
 
 echo "Web:     http://localhost:${PORT:-8080}"
-echo "Clientes: http://localhost:${PORT:-8080}/admin     (activar / renovar suscripciones)"
+echo "Clientes: entran directo, sin cuenta ni clave (para pedir cuenta: añade --accounts a serve)"
 echo "Anuncios: http://localhost:${PORT:-8080}/control   (pausa comercial: tapar / volver al partido)"
 echo "Señal:   rtmp://<IP-de-este-servidor>:1935/live/$NAME   (en OBS: Servidor = rtmp://IP:1935/live, Clave = $NAME)"
 "$PY" -m shomer_tv channel --name "$NAME" --input "rtmp://0.0.0.0:1935/live/$NAME" --listen --retry

@@ -141,6 +141,27 @@ function bindControls() {
   });
 }
 
+// ---------------------------------------------------------- Buscar deporte
+
+function openSport(text) {
+  const url = ShomerSports.searchUrl(text);
+  if (url) chrome.tabs.create({ url });
+}
+
+function bindSportSearch() {
+  $('sportForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    openSport($('sportInput').value);
+  });
+  $('sportQuick').replaceChildren(...ShomerSports.QUICK.map((s) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = s.label;
+    b.addEventListener('click', () => openSport(s.query));
+    return b;
+  }));
+}
+
 // ------------------------------------------------------------------ Estado
 
 async function refreshStatus() {
@@ -207,6 +228,7 @@ function renderStatus(st) {
   settings = await ShomerSettings.load();
   render();
   bindControls();
+  bindSportSearch();
   await renderPin();
   refreshStatus();
   setInterval(refreshStatus, 1000);

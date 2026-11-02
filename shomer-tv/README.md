@@ -27,7 +27,7 @@ python3 -m venv venv && venv/bin/pip install -r requirements.txt
 
 ```bash
 # 1) Servidor web para los clientes (http://IP:8080)
-python -m shomer_tv serve --port 8080 --admin-key CLAVE-OPERADOR   # --open = sin cuentas
+python -m shomer_tv serve --port 8080 --admin-key CLAVE-OPERADOR   # añade --accounts para pedir cuenta
 
 # 2a) Canal en vivo: espera la señal de OBS
 python -m shomer_tv channel --name canal-1 --input rtmp://0.0.0.0:1935/live/canal-1 --listen --retry
@@ -57,7 +57,7 @@ O todo junto: `./run.sh canal-1`.
 
 ## Clientes y suscripciones
 
-Para ver los canales, cada cliente necesita una cuenta con la suscripción activa.
+**Por defecto no se pide cuenta: cualquiera ve los canales.** Si arrancas `serve --accounts`, cada cliente necesita una cuenta con la suscripción activa.
 
 1. El cliente entra a `http://IP:8080`, pulsa **Crear cuenta** (correo y contraseña) y ve
    el aviso "Tu suscripción no está activa".
@@ -75,7 +75,7 @@ Para ver los canales, cada cliente necesita una cuenta con la suscripción activ
 - Desde la terminal: `python -m shomer_tv users list`, `users extend correo 30`,
   `users extend correo 0` (cancelar), `users delete correo`.
 - Las cuentas se guardan en `data/accounts.db` (SQLite). **Haz copia de seguridad** de ese archivo.
-- Con `serve --open` no se pide cuenta (pruebas). La clave de acceso antigua
+- Sin `--accounts` no se pide cuenta. La clave de acceso antigua
   (`--access-key`) sigue sirviendo como pase general.
 
 > Detrás de nginx/HTTPS, define siempre `--admin-key`: sin ella las páginas del operador

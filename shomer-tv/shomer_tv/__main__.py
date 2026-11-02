@@ -1,6 +1,6 @@
 """
 Uso:
-  python -m shomer_tv serve --port 8080 --open
+  python -m shomer_tv serve --port 8080          # añade --accounts para pedir cuenta
   python -m shomer_tv stack                         ← web + todos los canales de channels.json
   python -m shomer_tv channel --name canal1 --input rtmp://0.0.0.0:1935/live/canal1 --listen
   python -m shomer_tv channel --name final --input partido.mp4 --vod
@@ -61,7 +61,8 @@ def main(argv=None):
     s.add_argument("--admin-key", default=os.environ.get("SHOMER_ADMIN_KEY"),
                    help="clave del operador para /control y /admin (sin ella, solo desde localhost)")
     s.add_argument("--db", default=DEFAULT_DB, help="base de datos de cuentas de clientes")
-    s.add_argument("--open", action="store_true", help="sin cuentas: cualquiera puede ver los canales")
+    s.add_argument("--accounts", action="store_true",
+                   help="pedir cuenta con suscripción activa (por defecto, cualquiera puede ver los canales)")
     s.add_argument("--channels", default=DEFAULT_CHANNELS,
                    help="catálogo JSON: títulos y canales que aún no tienen señal")
 
@@ -70,7 +71,8 @@ def main(argv=None):
     k.add_argument("--out", default=DEFAULT_OUT)
     k.add_argument("--port", type=int)
     k.add_argument("--host")
-    k.add_argument("--open", action="store_true", help="sin cuentas, también si el catálogo no lo pide")
+    k.add_argument("--accounts", action="store_true",
+                   help="pedir cuenta con suscripción activa (por defecto, cualquiera puede ver los canales)")
     k.add_argument("--admin-key", default=os.environ.get("SHOMER_ADMIN_KEY"))
     k.add_argument("--db", default=DEFAULT_DB)
 
@@ -95,7 +97,7 @@ def main(argv=None):
         from .catalog import catalog_path_or_none
         from .server import serve
         cat = catalog_path_or_none(a.channels)
-        serve(a.out, a.host, a.port, a.access_key, a.admin_key, None if a.open else a.db,
+        serve(a.out, a.host, a.port, a.access_key, a.admin_key, a.db if a.accounts else None,
               list(cat.channels) if cat else None)
         return 0
     if a.cmd == "stack":
@@ -165,11 +167,10 @@ def _stack(a) -> int:
     cat = load_catalog(a.config)
     host = a.host or cat.host
     port = a.port or cat.port
-    open_access = a.open or cat.open_access
     specs = list(cat.channels)
     threading.Thread(
         target=serve,
-        args=(a.out, host, port, None, a.admin_key, None if open_access else a.db, specs),
+        args=(a.out, host, port, None, a.admin_key, a.db if a.accounts else None, specs),
         daemon=True,
     ).start()
     logging.info("Web: http://localhost:%d", port)
