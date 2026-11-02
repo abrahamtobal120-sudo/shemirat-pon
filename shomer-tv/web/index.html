@@ -161,24 +161,33 @@ document.getElementById('keyok').onclick = () => {
 };
 
 function render(chans) {
-  list.textContent = '';
   if (!chans.length) {
     list.innerHTML = '<p class="note">No hay canales todavía.</p>';
     return;
   }
-  for (const c of chans) {
-    const b = document.createElement('button');
+  // Actualiza los botones existentes en vez de recrearlos, para no perder clics a mitad de refresco
+  const old = new Map([...list.querySelectorAll('button.ch')].map(b => [b.dataset.name, b]));
+  list.querySelectorAll(':scope > :not(button.ch)').forEach(e => e.remove());
+  chans.forEach((c, i) => {
+    let b = old.get(c.name);
+    old.delete(c.name);
+    if (!b) {
+      b = document.createElement('button');
+      b.dataset.name = c.name;
+      const n = document.createElement('span');
+      n.textContent = c.name;
+      b.append(n, document.createElement('span'));
+    }
     b.className = 'ch' + (current === c.name ? ' sel' : '');
-    const n = document.createElement('span');
-    n.textContent = c.name;
-    const t = document.createElement('span');
+    const t = b.lastChild;
     const st = c.vod ? 'ended' : c.state;
     t.className = 'tag ' + st;
     t.textContent = c.vod ? 'Repetición' : c.ad ? 'EN VIVO · pausa' : (LABEL[st] || st);
-    b.append(n, t);
     b.onclick = () => play(c);
-    list.append(b);
-  }
+    // Solo mueve el botón si no está ya en su lugar
+    if (list.children[i] !== b) list.insertBefore(b, list.children[i] || null);
+  });
+  old.forEach(b => b.remove());
 }
 
 function play(c) {
