@@ -80,6 +80,8 @@ O todo junto: `./run.sh canal-1`.
 
 > Detrás de nginx/HTTPS, define siempre `--admin-key`: sin ella las páginas del operador
 > solo aceptan conexiones directas desde el propio servidor, no a través del proxy.
+> Pon también `proxy_set_header X-Real-IP $remote_addr;` para que el límite de intentos
+> y de cuentas nuevas cuente por cliente y no por el proxy.
 
 ## Anuncios (pausas comerciales)
 

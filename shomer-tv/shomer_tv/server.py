@@ -31,7 +31,9 @@ from __future__ import annotations
 import hmac
 import json
 import logging
+import math
 import os
+import threading
 import time
 from http import cookies
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -47,24 +49,37 @@ WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 
 class _RateLimit:
-    """Frena los intentos de contraseña: máx. `limit` fallos por IP en `window` segundos."""
+    """Máx. `limit` eventos por IP en `window` segundos (fallos de contraseña, cuentas nuevas)."""
 
     def __init__(self, limit=10, window=600):
         self.limit, self.window, self.fails = limit, window, {}
+        self._lock = threading.Lock()
 
     def blocked(self, ip: str) -> bool:
         now = time.time()
-        self.fails[ip] = [t for t in self.fails.get(ip, []) if now - t < self.window]
-        return len(self.fails[ip]) >= self.limit
+        with self._lock:
+            # Se limpian las IP que ya no tienen eventos recientes para que el diccionario no crezca.
+            if len(self.fails) > 1000:
+                self.fails = {k: v for k, v in self.fails.items() if v and now - v[-1] < self.window}
+            recent = [t for t in self.fails.get(ip, []) if now - t < self.window]
+            if recent:
+                self.fails[ip] = recent
+            else:
+                self.fails.pop(ip, None)
+            return len(recent) >= self.limit
 
     def fail(self, ip: str):
-        self.fails.setdefault(ip, []).append(time.time())
+        with self._lock:
+            self.fails.setdefault(ip, []).append(time.time())
 
 
 def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = None,
                  accounts: Accounts | None = None, channels=None):
     hls_root = os.path.abspath(hls_root)
     limiter = _RateLimit()
+    signups = _RateLimit(limit=5, window=3600)
+    # Páginas del operador: solo se sirven por /control y /admin, nunca como archivo directo.
+    operator_pages = {os.path.normcase(os.path.join(WEB_DIR, f)) for f in ("control.html", "admin.html")}
 
     class Handler(SimpleHTTPRequestHandler):
         extensions_map = {**SimpleHTTPRequestHandler.extensions_map,
@@ -114,6 +129,14 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
             ck = c["shomer_admin"].value if "shomer_admin" in c else ""
             return any(v and hmac.compare_digest(v, admin_key) for v in (q, ck))
 
+        def _client_ip(self) -> str:
+            ip = self.client_address[0]
+            # Detrás de nginx en la misma máquina, la IP real viene en X-Real-IP
+            # (proxy_set_header X-Real-IP $remote_addr). Solo se confía en ella si llega del proxy local.
+            if ip in ("127.0.0.1", "::1"):
+                return self.headers.get("X-Real-IP", "").strip() or ip
+            return ip
+
         def _body(self) -> dict:
             n = int(self.headers.get("Content-Length", 0) or 0)
             body = json.loads(self.rfile.read(min(n, 10_000)) or b"{}")
@@ -142,7 +165,14 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
             if not name or not name.replace("-", "").replace("_", "").isalnum():
                 return self._json({"error": "canal inválido"}, 400)
             minutes = body.get("minutes")
-            st = set_ad(hls_root, name, bool(body.get("on")), float(minutes) if minutes else None)
+            if minutes:
+                try:
+                    minutes = float(minutes)
+                except (TypeError, ValueError):
+                    minutes = -1
+                if not math.isfinite(minutes) or minutes <= 0:
+                    return self._json({"error": "minutos inválidos"}, 400)
+            st = set_ad(hls_root, name, bool(body.get("on")), minutes or None)
             log.info("pausa comercial %s en %s", "ACTIVADA" if st["ad"] else "quitada", name)
             return self._json({"channel": name, **st})
 
@@ -152,12 +182,14 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
             if path == "/api/logout":
                 accounts.logout(self._cookie("shomer_session"))
                 return self._json({"ok": True}, cookie="shomer_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax")
-            ip = self.client_address[0]
-            if limiter.blocked(ip):
+            ip = self._client_ip()
+            if limiter.blocked(ip) or (path == "/api/signup" and signups.blocked(ip)):
                 return self._json({"error": "demasiados intentos; espera unos minutos"}, 429)
             try:
                 email, pw = str(body.get("email", "")), str(body.get("password", ""))
                 if path == "/api/signup":
+                    # Cada cuenta cuesta un scrypt: se limita cuántas crea cada IP por hora.
+                    signups.fail(ip)
                     u = accounts.signup(email, pw, str(body.get("name", "")))
                     log.info("cuenta nueva: %s", u["email"])
                 else:
@@ -220,19 +252,21 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
                     return self._json({"error": "clave de operador incorrecta (?admin=…)"}, 403)
                 self.path = path + ".html"
                 return super().do_GET()
-            if path in ("/control.html", "/admin.html"):
-                return self._json({"error": "no encontrado"}, 404)
             if path == "/api/channels":
                 return self._json(list_channels(hls_root, channels, include_ingest=self._admin_ok()))
             if path.startswith("/hls/"):
-                if path.startswith("/hls/.control/"):
-                    return self._json({"error": "no encontrado"}, 404)
                 return self._serve_hls(path[len("/hls/"):])
+            # Se compara la ruta ya resuelta (con ./, //, %xx o mayúsculas en Windows).
+            if os.path.normcase(os.path.abspath(self.translate_path(self.path))) in operator_pages:
+                return self._json({"error": "no encontrado"}, 404)
             return super().do_GET()
 
         def _serve_hls(self, rel: str):
             full = os.path.abspath(os.path.join(hls_root, rel))
             if not full.startswith(hls_root + os.sep) or not os.path.isfile(full):
+                return self._json({"error": "no encontrado"}, 404)
+            # Nada oculto (.control/ con el estado de las pausas, .tmp…), ya con la ruta normalizada.
+            if any(p.startswith(".") for p in os.path.relpath(full, hls_root).split(os.sep)):
                 return self._json({"error": "no encontrado"}, 404)
             ctype = self.extensions_map.get(os.path.splitext(full)[1], "application/octet-stream")
             with open(full, "rb") as f:
