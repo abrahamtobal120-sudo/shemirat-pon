@@ -1,0 +1,28 @@
+{
+  "host": "0.0.0.0",
+  "port": 8080,
+  "open": false,
+  "channels": [
+    {
+      "name": "canal-1",
+      "title": "Partido A",
+      "input": "rtmp://0.0.0.0:1935/live/canal-1",
+      "listen": true,
+      "retry": true
+    },
+    {
+      "name": "canal-2",
+      "title": "Partido B",
+      "input": "rtmp://0.0.0.0:1936/live/canal-2",
+      "listen": true,
+      "retry": true
+    },
+    {
+      "name": "canal-3",
+      "title": "Partido C",
+      "input": "srt://0.0.0.0:8890?mode=listener",
+      "listen": false,
+      "retry": true
+    }
+  ]
+}

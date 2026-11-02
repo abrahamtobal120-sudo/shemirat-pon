@@ -3,7 +3,7 @@ pipeline.py — Un canal: señal de entrada → filtro → HLS para los clientes
 
     entrada (RTMP/SRT/HLS/archivo) ──PyAV──► cuadros ──► Detector ──► tapado
                                                                      │
-                     audio ─────────────────────────► AAC ──► HLS ◄──┘ H.264
+                     audio ─────────────────────────► AAC ──► HLS ABR (varias calidades)
 
 El análisis no se hace en todos los cuadros (sería demasiado caro): se analiza
 uno cada `1/analysis_fps` segundos y los cuadros intermedios se retienen en un
@@ -21,7 +21,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import shutil
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -34,9 +33,10 @@ import numpy as np
 from .adbreak import AdWatcher, render_slate
 from .addetect import AutoAdDetector
 from .detector import Detector, FilterOptions
+from .ladder import VIDEO_TB
+from .packager import HlsPublisher
 
 log = logging.getLogger("shomer.pipeline")
-VIDEO_TB = Fraction(1, 90000)
 
 
 @dataclass
@@ -54,6 +54,7 @@ class ChannelConfig:
     cover: str = "blur"           # 'blur' | 'solid'
     solid_color: tuple = (58, 63, 71)
     bitrate: str = "2500k"
+    abr: bool = True              # varias calidades HLS; False = una sola, como antes
     preset: str = "veryfast"
     segment_sec: int = 2
     threads: int = 0
@@ -81,37 +82,6 @@ class Channel:
         if url.startswith(("rtmp://", "srt://", "http://", "https://", "udp://")):
             opts.setdefault("rw_timeout", str(15_000_000))  # 15 s sin datos = caída de la señal
         return av.open(url, options=opts, timeout=None if self.cfg.listen else 20)
-
-    # -------------------------------------------------------------- salida
-    def _open_output(self, w, h, fps, has_audio):
-        if os.path.isdir(self.dir):
-            shutil.rmtree(self.dir)
-        os.makedirs(self.dir)
-        hls = {
-            "hls_time": str(self.cfg.segment_sec),
-            "hls_segment_filename": os.path.join(self.dir, "seg_%05d.ts"),
-            "hls_flags": "independent_segments+temp_file",
-        }
-        if self.cfg.vod:
-            hls.update(hls_playlist_type="event", hls_list_size="0")
-        else:
-            hls.update(hls_list_size="8", hls_flags=hls["hls_flags"] + "+delete_segments")
-        out = av.open(os.path.join(self.dir, "index.m3u8"), "w", format="hls", options=hls)
-
-        vs = out.add_stream("libx264", rate=round(fps))
-        vs.width, vs.height, vs.pix_fmt = w, h, "yuv420p"
-        vs.codec_context.time_base = VIDEO_TB
-        vs.bit_rate = _parse_rate(self.cfg.bitrate)
-        gop = max(1, round(fps * self.cfg.segment_sec))
-        vs.options = {"preset": self.cfg.preset, "g": str(gop), "keyint_min": str(gop),
-                      "sc_threshold": "0", "maxrate": self.cfg.bitrate,
-                      "bufsize": str(2 * _parse_rate(self.cfg.bitrate))}
-        aus = None
-        if has_audio:
-            aus = out.add_stream("aac", rate=48000)
-            aus.layout = "stereo"
-            aus.bit_rate = 128_000
-        return out, vs, aus
 
     # ------------------------------------------------------------ tapado
     def _cover(self, rgb: np.ndarray, mask: np.ndarray | None) -> np.ndarray:
@@ -161,10 +131,17 @@ class Channel:
         fps = float(vin.average_rate or vin.guessed_rate or 25)
         h = cfg.height - cfg.height % 2
         w = round(vin.codec_context.width * h / vin.codec_context.height / 2) * 2
-        out, vs, aus = self._open_output(w, h, fps, ain is not None)
+        pub = HlsPublisher(self.dir, abr=cfg.abr, video_bitrate=cfg.bitrate, preset=cfg.preset,
+                           segment_sec=cfg.segment_sec, vod=cfg.vod)
+        try:
+            pub.open(w, h, fps, ain is not None)
+        except Exception:
+            inp.close()
+            raise
+        self.stats["variants"] = pub.variant_stats()
         resampler = av.AudioResampler(format="fltp", layout="stereo", rate=48000) if ain else None
-        log.info("[%s] %dx%d @ %.2f fps, audio=%s, motor=%s → %s", cfg.name, w, h, fps,
-                 bool(ain), self.detector.provider, self.dir)
+        log.info("[%s] %dx%d @ %.2f fps, audio=%s, calidades=%s, motor=%s → %s", cfg.name, w, h, fps,
+                 bool(ain), pub.summary(), self.detector.provider, self.dir)
 
         buf: deque = deque()          # cuadros esperando el siguiente análisis: (t, rgb)
         prev_mask = None              # máscara del último análisis
@@ -198,10 +175,7 @@ class Channel:
             vq.append([t, rgb, mask])
 
         def write_video(t, rgb, mask):
-            frame = av.VideoFrame.from_ndarray(self._cover(rgb, mask), format="rgb24").reformat(format="yuv420p")
-            frame.pts, frame.time_base = int(round(t / VIDEO_TB)), VIDEO_TB
-            for pkt in vs.encode(frame):
-                out.mux(pkt)
+            pub.write_video(t, self._cover(rgb, mask))
             self.stats["frames"] += 1
             if rgb is slate:
                 self.stats["ad_frames"] += 1
@@ -209,12 +183,7 @@ class Channel:
                 self.stats["filtered_frames"] += 1
 
         def write_audio(t, af, mute):
-            if mute:  # el audio del anuncio no sale
-                z = av.AudioFrame.from_ndarray(np.zeros_like(af.to_ndarray()), format="fltp", layout="stereo")
-                z.sample_rate, z.pts, z.time_base = 48000, af.pts, af.time_base
-                af = z
-            for pkt in aus.encode(af):
-                out.mux(pkt)
+            pub.write_audio(af, mute)
 
         def flush(upto):
             while vq and vq[0][0] <= upto:
@@ -354,18 +323,11 @@ class Channel:
                 bt, brgb = buf.popleft()
                 emit(bt, brgb, prev_mask)
             flush(float("inf"))
-            for pkt in vs.encode(None):
-                out.mux(pkt)
-            if aus:
-                for pkt in aus.encode(None):
-                    out.mux(pkt)
         finally:
-            out.close()
+            pub.close()
             inp.close()
             self.stats["state"] = "ended"
             self._write_status(force=True)
-            if cfg.vod:
-                _finalize_vod(os.path.join(self.dir, "index.m3u8"))
         log.info("[%s] terminado: %d cuadros, %d con zonas tapadas", cfg.name,
                  self.stats["frames"], self.stats["filtered_frames"])
 
@@ -396,22 +358,3 @@ def _union(a, b):
 def _is_live(url: str) -> bool:
     return url.startswith(("rtmp://", "srt://", "udp://", "rtsp://")) or ".m3u8" in url
 
-
-def _parse_rate(s: str) -> int:
-    s = str(s).lower()
-    mult = 1_000_000 if s.endswith("m") else 1000 if s.endswith("k") else 1
-    return int(float(s.rstrip("km")) * mult)
-
-
-def _finalize_vod(path: str):
-    """Marca la lista como completa para que el reproductor permita adelantar/atrasar."""
-    try:
-        with open(path) as f:
-            txt = f.read()
-        txt = txt.replace("#EXT-X-PLAYLIST-TYPE:EVENT", "#EXT-X-PLAYLIST-TYPE:VOD")
-        if "#EXT-X-ENDLIST" not in txt:
-            txt += "#EXT-X-ENDLIST\n"
-        with open(path, "w") as f:
-            f.write(txt)
-    except OSError:
-        pass

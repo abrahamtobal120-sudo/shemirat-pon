@@ -3,7 +3,8 @@ server.py — Servidor web para los clientes: página de canales + reproductor H
 
     /                    página principal (web/index.html)
     /api/channels        lista de canales con su estado (status.json de cada uno)
-    /hls/<canal>/...     lista y segmentos HLS generados por los canales
+    /hls/<canal>/index.m3u8   lista maestra (varias calidades) o lista única
+    /hls/<canal>/<calidad>/   segmentos de esa calidad (.ts) y su lista de medios
     /control             página del operador: marcar inicio/fin de las pausas comerciales
     POST /api/ad         {"channel": "...", "on": true|false, "minutes": 3}
     POST /api/signup     {"email", "password", "name"}   → crea la cuenta e inicia sesión
@@ -38,6 +39,8 @@ from urllib.parse import parse_qs, urlparse
 
 from .accounts import SESSION_DAYS, Accounts
 from .adbreak import get_ad, set_ad
+from .catalog import present_channels
+from .ladder import parse_master, resolve_variant_uri
 
 log = logging.getLogger("shomer.server")
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
@@ -59,7 +62,7 @@ class _RateLimit:
 
 
 def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = None,
-                 accounts: Accounts | None = None):
+                 accounts: Accounts | None = None, channels=None):
     hls_root = os.path.abspath(hls_root)
     limiter = _RateLimit()
 
@@ -220,7 +223,7 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
             if path in ("/control.html", "/admin.html"):
                 return self._json({"error": "no encontrado"}, 404)
             if path == "/api/channels":
-                return self._json(list_channels(hls_root))
+                return self._json(list_channels(hls_root, channels, include_ingest=self._admin_ok()))
             if path.startswith("/hls/"):
                 if path.startswith("/hls/.control/"):
                     return self._json({"error": "no encontrado"}, 404)
@@ -237,7 +240,10 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
             self.send_response(200)
             self.send_header("Content-Type", ctype)
             # La lista cambia cada pocos segundos; los segmentos no cambian nunca.
-            self.send_header("Cache-Control", "no-cache" if full.endswith((".m3u8", ".json")) else "max-age=3600")
+            # La lista cambia cada segmento. Los .ts no se reescriben; una CDN delante
+            # de este mismo origen puede cachearlos un minuto sin saltarse la suscripción.
+            self.send_header("Cache-Control",
+                             "no-cache" if full.endswith((".m3u8", ".json")) else "public, max-age=60")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
@@ -246,39 +252,69 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
     return Handler
 
 
-def list_channels(hls_root: str):
-    chans = []
-    if not os.path.isdir(hls_root):
-        return chans
-    for name in sorted(os.listdir(hls_root)):
-        d = os.path.join(hls_root, name)
-        if not os.path.isfile(os.path.join(d, "index.m3u8")):
-            continue
-        st = {}
-        try:
-            with open(os.path.join(d, "status.json")) as f:
-                st = json.load(f)
-        except (OSError, ValueError):
-            pass
-        state = st.get("state", "unknown")
-        # Un canal "en vivo" que no se actualiza hace 15 s se considera caído.
-        if state == "live" and time.time() - st.get("updated", 0) > 15:
-            state = "down"
-        with open(os.path.join(d, "index.m3u8")) as f:
-            vod = "#EXT-X-ENDLIST" in f.read()
-        ad = get_ad(hls_root, name)
-        chans.append({"name": name, "state": state, "ad": bool(ad.get("ad")) and state == "live",
-                      "ad_until": ad.get("until") if ad.get("ad") else None, "vod": vod, "url": f"/hls/{name}/index.m3u8",
-                      "frames": st.get("frames", 0), "speed": st.get("speed", 0),
-                      "analysis_fps": st.get("analysis_fps", 0)})
-    return chans
+def list_channels(hls_root: str, channels=None, *, include_ingest: bool = False):
+    found = []
+    if os.path.isdir(hls_root):
+        for name in sorted(os.listdir(hls_root)):
+            if name.startswith("."):
+                continue
+            if not os.path.isdir(os.path.join(hls_root, name)):
+                continue
+            row = _read_channel(hls_root, name)
+            if row:
+                found.append(row)
+    return present_channels(found, list(channels or []), include_ingest=include_ingest)
+
+
+def _read_text(path: str) -> str:
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+def _read_channel(hls_root: str, name: str):
+    d = os.path.join(hls_root, name)
+    index = os.path.join(d, "index.m3u8")
+    if not os.path.isfile(index):
+        return None
+    text = _read_text(index)
+    variants = []
+    if "#EXT-X-STREAM-INF" in text:
+        vod = False
+        for item in parse_master(text):
+            media = resolve_variant_uri(d, item["uri"])
+            if media and "#EXT-X-ENDLIST" in _read_text(media):
+                vod = True
+            variants.append({"name": item["name"], "bandwidth": item["bandwidth"],
+                             "resolution": item["resolution"], "url": f"/hls/{name}/{item['uri']}"})
+    else:
+        vod = "#EXT-X-ENDLIST" in text
+    st = {}
+    try:
+        with open(os.path.join(d, "status.json"), encoding="utf-8") as f:
+            st = json.load(f)
+    except (OSError, ValueError):
+        pass
+    state = st.get("state", "unknown")
+    # Un canal "en vivo" que no se actualiza hace 15 s se considera caído.
+    if state == "live" and time.time() - st.get("updated", 0) > 15:
+        state = "down"
+    ad = get_ad(hls_root, name)
+    return {"name": name, "state": state, "ad": bool(ad.get("ad")) and state == "live",
+            "ad_until": ad.get("until") if ad.get("ad") else None, "vod": vod,
+            "url": f"/hls/{name}/index.m3u8", "variants": variants,
+            "frames": st.get("frames", 0), "speed": st.get("speed", 0),
+            "analysis_fps": st.get("analysis_fps", 0)}
 
 
 def serve(hls_root: str, host: str, port: int, access_key: str | None, admin_key: str | None = None,
-          db_path: str | None = None):
+          db_path: str | None = None, channels=None):
     """db_path=None → sin cuentas (acceso libre o solo con la clave de acceso)."""
     accounts = Accounts(db_path) if db_path else None
-    httpd = ThreadingHTTPServer((host, port), make_handler(hls_root, access_key, admin_key, accounts))
+    httpd = ThreadingHTTPServer((host, port), make_handler(
+        hls_root, access_key, admin_key, accounts, channels))
     log.info("Servidor en http://%s:%d  (canales en %s)", host, port, os.path.abspath(hls_root))
     try:
         httpd.serve_forever()
