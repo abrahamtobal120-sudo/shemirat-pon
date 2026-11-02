@@ -179,16 +179,25 @@ document.getElementById('keyok').onclick = () => {
 };
 
 function render(chans) {
-  list.textContent = '';
   if (!chans.length) {
     list.innerHTML = '<p class="note">No hay canales todavía.</p>';
     return;
   }
-  for (const c of chans) {
-    const b = document.createElement('button');
+  // Actualiza los botones existentes en vez de recrearlos, para no perder clics a mitad de refresco
+  const old = new Map([...list.querySelectorAll('button.ch')].map(b => [b.dataset.name, b]));
+  list.querySelectorAll(':scope > :not(button.ch)').forEach(e => e.remove());
+  chans.forEach((c, i) => {
+    let b = old.get(c.name);
+    old.delete(c.name);
+    if (!b) {
+      b = document.createElement('button');
+      b.dataset.name = c.name;
+      b.append(document.createElement('span'), document.createElement('span'));
+    }
     b.className = 'ch' + (current === c.name ? ' sel' : '');
-    const id = document.createElement('span');
+    const id = b.firstChild;
     id.className = 'id';
+    id.textContent = '';
     const n = document.createElement('span');
     n.textContent = c.title || c.name;
     id.append(n);
@@ -197,15 +206,16 @@ function render(chans) {
       q.textContent = c.variants.map(v => v.name || v.resolution).join(' · ');
       id.append(q);
     }
-    const t = document.createElement('span');
+    const t = b.lastChild;
     const waiting = !c.url;
     const st = waiting ? 'waiting' : (c.vod ? 'ended' : c.state);
     t.className = 'tag ' + st;
     t.textContent = waiting ? 'Esperando' : c.vod ? 'Repetición' : c.ad ? 'EN VIVO · pausa' : (LABEL[st] || st);
-    b.append(id, t);
     b.onclick = () => c.url ? play(c) : wait(c);
-    list.append(b);
-  }
+    // Solo mueve el botón si no está ya en su lugar
+    if (list.children[i] !== b) list.insertBefore(b, list.children[i] || null);
+  });
+  old.forEach(b => b.remove());
 }
 
 function levelLabel(level) {

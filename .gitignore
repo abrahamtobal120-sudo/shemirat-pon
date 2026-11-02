@@ -1,0 +1,10 @@
+# Generado al transmitir / en uso: no va en git
+shomer-tv/hls/
+shomer-tv/data/
+
+# Python
+__pycache__/
+*.pyc
+
+# Builds de las extensiones (.xpi, modelos, wasm)
+*/dist/

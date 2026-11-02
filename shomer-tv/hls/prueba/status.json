@@ -1,1 +1,0 @@
-{"name": "prueba", "state": "ended", "persons": [{"box": [265, 175, 351, 407], "female": 0.01, "filtered": false}, {"box": [346, 177, 405, 382], "female": 0.23, "filtered": false}, {"box": [547, 201, 608, 385], "female": 0.06, "filtered": false}], "analysis_ms": 227, "analysis_fps": 2.76, "speed": 0.59, "frames": 600, "filtered_frames": 372, "updated": 1793579476.1648495}
