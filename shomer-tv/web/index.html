@@ -107,13 +107,14 @@
 </main>
 
 <script src="vendor/hls.min.js"></script>
+<script src="vendor/mpegts.min.js"></script>
 <script>
 'use strict';
 const video = document.getElementById('video');
 const empty = document.getElementById('empty');
 const list = document.getElementById('list');
 const now = document.getElementById('now');
-let hls = null, current = null, channels = [];
+let hls = null, mpeg = null, current = null, channels = [];
 const quality = document.getElementById('quality');
 const qualityNow = document.getElementById('quality-now');
 
@@ -248,6 +249,7 @@ function resetQuality() {
 
 function stopPlayback() {
   if (hls) { hls.destroy(); hls = null; }
+  if (mpeg) { try { mpeg.pause(); mpeg.unload(); mpeg.detachMediaElement(); mpeg.destroy(); } catch (e) {} mpeg = null; }
   video.removeAttribute('src');
   try { video.load(); } catch (e) {}
   resetQuality();
@@ -268,37 +270,67 @@ function wait(c) {
   render(channels);
 }
 
+function fail(msg) {
+  empty.textContent = msg;
+  empty.style.display = 'flex';
+}
+
+function playTs(c) {
+  if (!(window.mpegts && mpegts.isSupported())) {
+    fail('Este navegador no puede reproducir esta señal.');
+    return;
+  }
+  mpeg = mpegts.createPlayer({ type: 'mpegts', isLive: true, url: c.url },
+                             { enableWorker: false, lazyLoad: false });
+  mpeg.attachMediaElement(video);
+  mpeg.on(mpegts.Events.ERROR, () => fail('La señal no está disponible.'));
+  mpeg.load();
+  video.play().catch(() => {});
+  qualityNow.textContent = 'Directo';
+}
+
+function playHls(c, allowTs) {
+  if (!(window.Hls && Hls.isSupported())) {
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = c.url;
+      qualityNow.textContent = 'Automática';
+      video.play().catch(() => {});
+      return;
+    }
+    if (allowTs) { playTs(c); return; }
+    fail('Este navegador no puede reproducir HLS.');
+    return;
+  }
+  hls = new Hls({
+    enableWorker: true,
+    capLevelToPlayerSize: true,
+    startLevel: -1,
+    liveSyncDurationCount: 3,
+    manifestLoadingTimeOut: 15000,
+    fragLoadingTimeOut: 20000,
+    xhrSetup: (x, url) => {
+      if (url.startsWith('/') || url.startsWith(location.origin)) x.withCredentials = true;
+    }
+  });
+  hls.loadSource(c.url);
+  hls.attachMedia(video);
+  hls.on(Hls.Events.MANIFEST_PARSED, () => { fillQualities(); video.play().catch(() => {}); });
+  hls.on(Hls.Events.LEVEL_SWITCHED, () => { qualityNow.textContent = qualityText(); });
+  hls.on(Hls.Events.ERROR, (_, d) => {
+    if (!d.fatal) return;
+    if (d.type === Hls.ErrorTypes.MEDIA_ERROR) { hls.recoverMediaError(); return; }
+    if (allowTs) { stopPlayback(); playTs(c); return; }
+    fail('La señal no está disponible.');
+  });
+}
+
 function play(c) {
   current = c.name;
   now.textContent = (c.title || c.name) + (c.vod ? ' · repetición' : ' · en vivo');
   empty.style.display = 'none';
   stopPlayback();
-  if (window.Hls && Hls.isSupported()) {
-    hls = new Hls({
-      enableWorker: true,
-      capLevelToPlayerSize: true,
-      startLevel: -1,
-      liveSyncDurationCount: 3,
-      xhrSetup: (x) => { x.withCredentials = true; }
-    });
-    hls.loadSource(c.url);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => { fillQualities(); video.play().catch(() => {}); });
-    hls.on(Hls.Events.LEVEL_SWITCHED, () => { qualityNow.textContent = qualityText(); });
-    hls.on(Hls.Events.ERROR, (_, d) => {
-      if (!d.fatal) return;
-      if (d.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
-      else { empty.textContent = 'La señal no está disponible. Reintentando…'; empty.style.display = 'flex';
-             setTimeout(() => current === c.name && play(c), 5000); }
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = c.url; // Safari / iPhone reproducen HLS de forma nativa
-    qualityNow.textContent = 'Automática';
-    video.play().catch(() => {});
-  } else {
-    empty.textContent = 'Este navegador no puede reproducir HLS.';
-    empty.style.display = 'flex';
-  }
+  if (c.kind === 'ts') playTs(c);
+  else playHls(c, true);
   render(channels);
 }
 

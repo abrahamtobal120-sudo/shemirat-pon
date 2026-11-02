@@ -12,8 +12,10 @@ import re
 from dataclasses import dataclass
 
 from .ladder import parse_bitrate
+from .relay import relay_path
 
 _NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,40}$")
+_SLUG = re.compile(r"[^A-Za-z0-9]+")
 
 
 @dataclass(frozen=True)
@@ -28,6 +30,7 @@ class ChannelSpec:
     height: int = 720
     abr: bool = True
     bitrate: str = "2500k"
+    play_url: str | None = None  # lista M3U: el reproductor abre esta URL, no un canal filtrado
 
 
 @dataclass(frozen=True)
@@ -39,22 +42,89 @@ class Catalog:
 
 
 def load_catalog(path: str) -> Catalog:
+    if path.lower().endswith((".m3u", ".m3u8")):
+        return Catalog(channels=tuple(load_m3u(path)))
     with open(path, encoding="utf-8") as f:
         raw = json.load(f)
     if isinstance(raw, list):
         raw = {"channels": raw}
     if not isinstance(raw, dict):
         raise ValueError("el catálogo tiene que ser un objeto JSON")
-    channels = tuple(_spec(item) for item in raw.get("channels", []))
+    channels = [_spec(item) for item in raw.get("channels", [])]
+    playlist = raw.get("playlist")
+    if playlist:
+        used = {c.name for c in channels}
+        channels.extend(load_m3u(_resolve_beside(path, str(playlist)), used))
     names = [c.name for c in channels]
     if len(names) != len(set(names)):
         raise ValueError("hay dos canales con el mismo nombre")
     return Catalog(
-        channels=channels,
+        channels=tuple(channels),
         host=str(raw.get("host") or "0.0.0.0"),
         port=int(raw.get("port", 8080)),
         open_access=bool(raw.get("open", False)),
     )
+
+
+def load_m3u(path: str, used: set[str] | None = None) -> list[ChannelSpec]:
+    """Lee una lista M3U/M3U8 de canales. No imprime las URLs."""
+    if not os.path.isfile(path):
+        raise ValueError(f"no está la lista {path}")
+    text = _read_playlist(path)
+    channels = []
+    used = set(used or ())
+    title = ""
+    n = 0
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("\ufeff"):
+            continue
+        if line.startswith("#EXTINF"):
+            title = line.rsplit(",", 1)[-1].strip()
+            continue
+        if line.startswith("#"):
+            continue
+        n += 1
+        name = _unique_name(title, used, n)
+        url = line
+        channels.append(ChannelSpec(
+            name=name, title=title or name, input=url, abr=False, play_url=url))
+        title = ""
+    if not channels:
+        raise ValueError(f"{path}: la lista no tiene canales")
+    return channels
+
+
+def _read_playlist(path: str) -> str:
+    with open(path, "rb") as f:
+        data = f.read()
+    for enc in ("utf-8-sig", "utf-8", "cp1252"):
+        try:
+            return data.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return data.decode("utf-8", errors="replace")
+
+
+def _resolve_beside(catalog_path: str, playlist: str) -> str:
+    playlist = os.path.expandvars(os.path.expanduser(playlist))
+    if os.path.isabs(playlist):
+        return playlist
+    return os.path.normpath(os.path.join(os.path.dirname(catalog_path), playlist))
+
+
+def _unique_name(title: str, used: set[str], n: int) -> str:
+    base = _SLUG.sub("-", title).strip("-") or f"ch-{n:04d}"
+    if not base[0].isalnum():
+        base = f"ch-{base}"
+    name = base[:41]
+    i = 2
+    while name in used or not _NAME.match(name):
+        suffix = f"-{i}"
+        name = (base[:41 - len(suffix)] + suffix)
+        i += 1
+    used.add(name)
+    return name
 
 
 def _spec(item: dict) -> ChannelSpec:
@@ -115,6 +185,11 @@ def present_channels(found: list[dict], specs: list[ChannelSpec], *,
         seen.add(spec.name)
         row = dict(by_name.get(spec.name) or _waiting(spec.name))
         row["title"] = spec.title
+        if not row.get("url") and spec.play_url:
+            row["url"] = relay_path(spec.name)
+            row["state"] = "live"
+            path = spec.play_url.split("?", 1)[0].lower()
+            row["kind"] = "hls" if path.endswith((".m3u8", ".m3u")) else "ts"
         if include_ingest:
             row["ingest"] = spec.input
         ordered.append(row)

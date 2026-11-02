@@ -5,6 +5,7 @@ server.py — Servidor web para los clientes: página de canales + reproductor H
     /api/channels        lista de canales con su estado (status.json de cada uno)
     /hls/<canal>/index.m3u8   lista maestra (varias calidades) o lista única
     /hls/<canal>/<calidad>/   segmentos de esa calidad (.ts) y su lista de medios
+    /stream/<canal>           relé HLS de una señal de la lista M3U
     /control             página del operador: marcar inicio/fin de las pausas comerciales
     POST /api/ad         {"channel": "...", "on": true|false, "minutes": 3}
     POST /api/signup     {"email", "password", "name"}   → crea la cuenta e inicia sesión
@@ -35,12 +36,13 @@ import os
 import time
 from http import cookies
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from .accounts import SESSION_DAYS, Accounts
 from .adbreak import get_ad, set_ad
 from .catalog import present_channels
 from .ladder import parse_master, resolve_variant_uri
+from .relay import classify, open_remote, resolve_target, rewrite_playlist
 
 log = logging.getLogger("shomer.server")
 WEB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "web")
@@ -65,6 +67,7 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
                  accounts: Accounts | None = None, channels=None):
     hls_root = os.path.abspath(hls_root)
     limiter = _RateLimit()
+    by_name = {c.name: c for c in (channels or [])}
 
     class Handler(SimpleHTTPRequestHandler):
         extensions_map = {**SimpleHTTPRequestHandler.extensions_map,
@@ -209,7 +212,7 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
                 if not self._admin_ok():
                     return self._json({"error": "clave de operador incorrecta"}, 403)
                 return self._json(accounts.list_users() if accounts else [])
-            if path == "/api/channels" or path.startswith("/hls/"):
+            if path == "/api/channels" or path.startswith("/hls/") or path.startswith("/stream/"):
                 st = self._viewer_status()
                 if st == 401:
                     return self._json({"error": "inicia sesión"}, 401)
@@ -228,6 +231,8 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
                 if path.startswith("/hls/.control/"):
                     return self._json({"error": "no encontrado"}, 404)
                 return self._serve_hls(path[len("/hls/"):])
+            if path.startswith("/stream/"):
+                return self._serve_stream(path[len("/stream/"):])
             return super().do_GET()
 
         def _serve_hls(self, rel: str):
@@ -248,6 +253,52 @@ def make_handler(hls_root: str, access_key: str | None, admin_key: str | None = 
             self.send_header("Content-Length", str(len(data)))
             self.end_headers()
             self.wfile.write(data)
+
+        def _serve_stream(self, rel: str):
+            name = unquote(rel.split("/", 1)[0])
+            spec = by_name.get(name)
+            if spec is None or not spec.play_url:
+                return self._json({"error": "no encontrado"}, 404)
+            src = parse_qs(urlparse(self.path).query).get("src", [None])[0]
+            try:
+                target = resolve_target(spec.play_url, src)
+            except ValueError:
+                return self._json({"error": "url remota inválida"}, 400)
+            try:
+                resp, ctype, peek = open_remote(target)
+            except ValueError as e:
+                return self._json({"error": str(e)}, 502)
+            kind = classify(ctype, peek)
+            if kind == "error":
+                resp.close()
+                return self._json({"error": "el origen no mandó vídeo"}, 502)
+            if kind == "playlist":
+                body = peek + resp.read(512_000)
+                resp.close()
+                data = rewrite_playlist(body.decode("utf-8", errors="replace"), name, target).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/vnd.apple.mpegurl")
+                self.send_header("Cache-Control", "no-cache")
+                self.send_header("Content-Length", str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self.send_response(200)
+            self.send_header("Content-Type", "video/mp2t" if kind == "ts" else (ctype or "application/octet-stream"))
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            try:
+                if peek:
+                    self.wfile.write(peek)
+                while True:
+                    chunk = resp.read(64 * 1024)
+                    if not chunk:
+                        break
+                    self.wfile.write(chunk)
+            except (ConnectionResetError, BrokenPipeError, ConnectionAbortedError):
+                pass
+            finally:
+                resp.close()
 
     return Handler
 

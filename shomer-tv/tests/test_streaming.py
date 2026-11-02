@@ -5,6 +5,7 @@ import tempfile
 import unittest
 
 from shomer_tv.catalog import channel_command, load_catalog, present_channels
+from shomer_tv.relay import classify, looks_like_playlist, resolve_target, rewrite_playlist
 from shomer_tv.ladder import (
     even_dimensions, parse_bitrate, parse_master, render_master, resolve_variant_uri,
     select_renditions, write_master, Variant,
@@ -76,13 +77,31 @@ class LadderTests(unittest.TestCase):
 class CatalogTests(unittest.TestCase):
     def test_catalogo_del_repo(self):
         cat = load_catalog(os.path.join(ROOT, "channels.json"))
-        self.assertEqual([c.name for c in cat.channels], ["canal-1", "canal-2", "canal-3"])
+        ingest = [c for c in cat.channels if not c.play_url]
+        self.assertEqual([c.name for c in ingest], ["canal-1", "canal-2", "canal-3"])
         self.assertTrue(cat.channels[0].listen)
         self.assertIn("1935", cat.channels[0].input)
         self.assertIn("1936", cat.channels[1].input)
         self.assertFalse(cat.channels[2].listen)
         self.assertTrue(cat.channels[2].input.startswith("srt://"))
-        self.assertTrue(all(c.abr and c.retry for c in cat.channels))
+        self.assertTrue(all(c.abr and c.retry for c in ingest))
+        self.assertTrue(any(c.play_url for c in cat.channels))
+
+    def test_lista_m3u(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "demo.m3u")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("#EXTM3U\n#EXTINF:-1,Alpha\nhttps://example.com/a.m3u8\n"
+                        "#EXTINF:-1,Alpha\nhttps://example.com/b.m3u8\n")
+            chans = load_catalog(path).channels
+            self.assertEqual([c.title for c in chans], ["Alpha", "Alpha"])
+            self.assertEqual(chans[0].name, "Alpha")
+            self.assertTrue(chans[1].name.startswith("Alpha-"))
+            self.assertTrue(all(c.play_url for c in chans))
+            shown = present_channels([], list(chans))
+            self.assertEqual(shown[0]["state"], "live")
+            self.assertEqual(shown[0]["url"], "/stream/Alpha")
+            self.assertEqual(shown[0]["kind"], "hls")
 
     def test_nombre_duplicado(self):
         with tempfile.TemporaryDirectory() as d:
@@ -107,16 +126,17 @@ class CatalogTests(unittest.TestCase):
 
     def test_presenta_esperando_y_oculta_la_entrada(self):
         cat = load_catalog(os.path.join(ROOT, "channels.json"))
+        ingest = [c for c in cat.channels if not c.play_url]
         found = [{"name": "canal-2", "state": "live", "url": "/hls/canal-2/index.m3u8",
                   "variants": [{"name": "720p", "url": "/hls/canal-2/720p/index.m3u8"}],
                   "vod": False, "ad": False}]
-        public = present_channels(found, list(cat.channels))
+        public = present_channels(found, ingest)
         self.assertEqual([c["name"] for c in public], ["canal-1", "canal-2", "canal-3"])
         self.assertEqual(public[0]["state"], "waiting")
         self.assertIsNone(public[0]["url"])
         self.assertEqual(public[1]["title"], "Partido B")
         self.assertNotIn("ingest", public[1])
-        private = present_channels(found, list(cat.channels), include_ingest=True)
+        private = present_channels(found, ingest, include_ingest=True)
         self.assertIn("1936", private[1]["ingest"])
 
 
@@ -146,6 +166,33 @@ class ChannelListTests(unittest.TestCase):
             self.assertEqual(by["viejo"]["variants"], [])
             self.assertTrue(by["viejo"]["vod"])
             self.assertFalse(any("ingest" in r for r in rows))
+
+
+class RelayTests(unittest.TestCase):
+    def test_reescribe_relativas_y_clave(self):
+        text = (
+            "#EXTM3U\n"
+            "#EXT-X-KEY:METHOD=AES-128,URI=\"key.php\"\n"
+            "seg_000.ts\n"
+        )
+        out = rewrite_playlist(text, "Alpha", "https://cdn.example/live/index.m3u8")
+        self.assertIn("/stream/Alpha?src=", out)
+        self.assertIn("seg_000.ts", out)
+        self.assertIn("key.php", out)
+        self.assertNotIn("https://cdn.example/live/seg_000.ts\n", out)
+
+    def test_rechaza_file(self):
+        with self.assertRaises(ValueError):
+            resolve_target("https://ok.example/a.m3u8", "file:///etc/passwd")
+
+    def test_detecta_manifiesto(self):
+        self.assertEqual(classify("text/plain", b"#EXTM3U\n"), "playlist")
+        self.assertEqual(classify("application/vnd.apple.mpegurl", b""), "playlist")
+        self.assertEqual(classify("video/mp2t", b"#EXTM3U\n"), "playlist")
+        packet = bytes([0x47]) + bytes(187) + bytes([0x47]) + bytes(10)
+        self.assertEqual(classify("application/vnd.apple.mpegurl", packet), "ts")
+        self.assertFalse(looks_like_playlist("https://x/a.m3u8", "application/octet-stream", packet))
+        self.assertEqual(classify("text/html", b"<html>no</html>"), "error")
 
 
 if __name__ == "__main__":

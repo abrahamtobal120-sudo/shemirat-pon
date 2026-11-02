@@ -176,6 +176,8 @@ def _stack(a) -> int:
     logging.info("Web: http://localhost:%d", port)
     procs = []
     for spec in specs:
+        if spec.play_url:
+            continue
         logging.info("Canal %s ← %s", spec.title, spec.input)
         procs.append(subprocess.Popen(channel_command(spec, a.out, sys.executable), cwd=ROOT))
     try:

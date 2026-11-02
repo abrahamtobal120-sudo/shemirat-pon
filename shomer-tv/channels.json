@@ -2,6 +2,7 @@
   "host": "0.0.0.0",
   "port": 8080,
   "open": false,
+  "playlist": "C:/Users/USER/Downloads/cdae6249795e033e7d14c49d41590b26-4cfb8d1d3ce513a23eb1d43921c687a5f1955ab6/cdae6249795e033e7d14c49d41590b26-4cfb8d1d3ce513a23eb1d43921c687a5f1955ab6/canales.m3u",
   "channels": [
     {
       "name": "canal-1",
