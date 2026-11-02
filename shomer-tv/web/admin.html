@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shomer TV — Clientes</title>
+<style>
+  :root { --bg:#0f1318; --card:#1a2028; --fg:#e8ecf1; --mut:#8a95a3; --acc:#2fb36d; --red:#e0484f; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--fg); }
+  header { display:flex; gap:20px; align-items:center; padding:14px 20px; border-bottom:1px solid #222a33; }
+  header h1 { margin:0; font-size:20px; }
+  header a { color:var(--acc); }
+  main { max-width:1000px; margin:auto; padding:20px; }
+  .note { color:var(--mut); font-size:14px; line-height:1.5; }
+  .stats { display:flex; gap:14px; margin:10px 0 20px; }
+  .stat { background:var(--card); border-radius:10px; padding:12px 18px; }
+  .stat b { display:block; font-size:24px; }
+  input { padding:9px; font-size:15px; border-radius:6px; border:1px solid #334; background:var(--card); color:var(--fg); }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #222a33; font-size:14px; vertical-align:middle; }
+  th { color:var(--mut); font-weight:500; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#2a323c; color:var(--mut); }
+  .tag.on { background:var(--acc); color:#fff; }
+  button { border:0; border-radius:6px; padding:7px 10px; cursor:pointer; color:#fff; background:#2a323c; font-size:13px; }
+  button.add { background:var(--acc); }
+  button.del { background:transparent; color:var(--red); }
+  td .note-in { width:140px; padding:6px; font-size:13px; }
+</style>
+</head>
+<body>
+<header><h1>🛡️ Shomer TV · Clientes</h1><a href="/control">Control de anuncios</a></header>
+<main>
+  <p class="note">Cuando un cliente te pague, búscalo por su correo y pulsa <b>+30 días</b> (o +365). Si la
+    suscripción ya estaba activa, los días se suman al final. <b>Cancelar</b> le corta el acceso al momento.</p>
+  <div class="stats">
+    <div class="stat"><b id="n-total">0</b>cuentas</div>
+    <div class="stat"><b id="n-active">0</b>activas</div>
+  </div>
+  <input id="q" placeholder="Buscar por correo o nombre" style="width:100%;margin-bottom:12px">
+  <table>
+    <thead><tr><th>Cliente</th><th>Suscripción</th><th>Nota (pago, referencia)</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</main>
+<script>
+'use strict';
+const k = new URLSearchParams(location.search).get('admin');
+if (k) {
+  document.cookie = 'shomer_admin=' + encodeURIComponent(k) + '; path=/; max-age=31536000; SameSite=Strict';
+  history.replaceState(null, '', '/admin');
+}
+let users = [];
+const rows = document.getElementById('rows');
+const q = document.getElementById('q');
+
+async function post(path, body) {
+  const r = await fetch(path, { method: 'POST', credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) alert((await r.json()).error || 'Error');
+  load();
+}
+
+function fmt(ts) { return new Date(ts * 1000).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }); }
+
+function render() {
+  const f = q.value.trim().toLowerCase();
+  document.getElementById('n-total').textContent = users.length;
+  document.getElementById('n-active').textContent = users.filter(u => u.active).length;
+  rows.textContent = '';
+  for (const u of users) {
+    if (f && !(u.email + ' ' + (u.name || '')).toLowerCase().includes(f)) continue;
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td');
+    c1.innerHTML = '<div></div><div class="note"></div>';
+    c1.children[0].textContent = u.email;
+    c1.children[1].textContent = (u.name ? u.name + ' · ' : '') + 'desde ' + fmt(u.created);
+    const c2 = document.createElement('td');
+    c2.innerHTML = '<span class="tag"></span>';
+    c2.firstChild.className = 'tag' + (u.active ? ' on' : '');
+    c2.firstChild.textContent = u.active ? 'Activa hasta ' + fmt(u.paid_until) : (u.paid_until ? 'Vencida' : 'Sin pagar');
+    const c3 = document.createElement('td');
+    const note = document.createElement('input');
+    note.className = 'note-in';
+    note.value = u.note || '';
+    c3.append(note);
+    const c4 = document.createElement('td');
+    const btn = (txt, cls, fn) => { const b = document.createElement('button'); b.textContent = txt; b.className = cls; b.onclick = fn; c4.append(b, ' '); };
+    btn('+30 días', 'add', () => post('/api/admin/extend', { email: u.email, days: 30, note: note.value }));
+    btn('+365', 'add', () => post('/api/admin/extend', { email: u.email, days: 365, note: note.value }));
+    if (u.active) btn('Cancelar', '', () => confirm('¿Cortar el acceso a ' + u.email + '?') &&
+                                             post('/api/admin/extend', { email: u.email, days: 0, note: note.value }));
+    btn('Borrar', 'del', () => confirm('¿Borrar la cuenta ' + u.email + '?') && post('/api/admin/delete', { email: u.email }));
+    tr.append(c1, c2, c3, c4);
+    rows.append(tr);
+  }
+}
+
+async function load() {
+  const r = await fetch('/api/admin/users', { credentials: 'same-origin' });
+  if (r.ok) { users = await r.json(); render(); }
+}
+q.oninput = render;
+load();
+setInterval(() => { if (document.activeElement.tagName !== 'INPUT') load(); }, 10000);
+</script>
+</body>
+</html>

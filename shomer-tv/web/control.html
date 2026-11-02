@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shomer TV — Control de anuncios</title>
+<style>
+  :root { --bg:#0f1318; --card:#1a2028; --fg:#e8ecf1; --mut:#8a95a3; --acc:#2fb36d; --red:#e0484f; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--fg); }
+  header { padding:14px 20px; border-bottom:1px solid #222a33; }
+  header h1 { margin:0; font-size:20px; }
+  main { max-width:760px; margin:auto; padding:20px; }
+  .note { color:var(--mut); font-size:14px; line-height:1.5; }
+  .ch { background:var(--card); border-radius:10px; padding:16px; margin-bottom:14px; border:2px solid transparent; }
+  .ch.ad { border-color:var(--red); }
+  .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .name { font-size:18px; font-weight:600; }
+  .state { font-size:14px; color:var(--mut); }
+  .ch.ad .state { color:var(--red); font-weight:600; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; }
+  button { flex:1; min-width:150px; padding:16px; font-size:17px; font-weight:600; border:0; border-radius:8px; cursor:pointer; color:#fff; }
+  .on { background:var(--red); }
+  .off { background:var(--acc); }
+  .sm { flex:0; min-width:auto; background:#2a323c; font-size:14px; padding:16px 14px; }
+</style>
+</head>
+<body>
+<header><h1>🛡️ Shomer TV · Control de anuncios</h1></header>
+<main>
+  <p class="note">Pulsa <b>Tapar anuncio</b> cuando empiece la pausa comercial: los clientes ven una pantalla
+    fija y el audio va en silencio. Pulsa <b>Volver al partido</b> cuando termine.
+    Atajos: <b>A</b> tapa y <b>P</b> vuelve al partido en el primer canal.</p>
+  <div id="list"></div>
+</main>
+<script>
+'use strict';
+// La clave de operador llega en ?admin=… la primera vez; se guarda en una cookie.
+const k = new URLSearchParams(location.search).get('admin');
+if (k) {
+  document.cookie = 'shomer_admin=' + encodeURIComponent(k) + '; path=/; max-age=31536000; SameSite=Strict';
+  history.replaceState(null, '', '/control');
+}
+const list = document.getElementById('list');
+let chans = [];
+
+async function setAd(name, on, minutes) {
+  await fetch('/api/ad', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+                           body: JSON.stringify({ channel: name, on, minutes }) });
+  refresh();
+}
+
+function render() {
+  list.textContent = '';
+  const live = chans.filter(c => !c.vod);
+  if (!live.length) { list.innerHTML = '<p class="note">No hay canales en vivo.</p>'; return; }
+  for (const c of live) {
+    const d = document.createElement('div');
+    d.className = 'ch' + (c.ad ? ' ad' : '');
+    const left = c.ad_until ? ' · se quita sola en ' + Math.max(0, Math.round((c.ad_until - Date.now() / 1000) / 60 * 10) / 10) + ' min' : '';
+    d.innerHTML = '<div class="top"><span class="name"></span><span class="state"></span></div><div class="row"></div>';
+    d.querySelector('.name').textContent = c.name;
+    d.querySelector('.state').textContent = c.ad ? 'ANUNCIO TAPADO' + left : (c.state === 'live' ? 'Partido al aire' : 'Sin señal');
+    const row = d.querySelector('.row');
+    const b = (txt, cls, fn) => { const x = document.createElement('button'); x.textContent = txt; x.className = cls; x.onclick = fn; row.append(x); };
+    if (c.ad) b('Volver al partido', 'off', () => setAd(c.name, false));
+    else {
+      b('Tapar anuncio', 'on', () => setAd(c.name, true));
+      b('2 min', 'sm', () => setAd(c.name, true, 2));
+      b('3 min', 'sm', () => setAd(c.name, true, 3));
+    }
+    list.append(d);
+  }
+}
+
+async function refresh() {
+  try {
+    const r = await fetch('/api/channels', { credentials: 'same-origin' });
+    if (r.ok) { chans = await r.json(); render(); }
+  } catch (e) {}
+}
+document.addEventListener('keydown', (e) => {
+  const c = chans.find(c => !c.vod);
+  if (!c || e.target.tagName === 'INPUT') return;
+  if (e.key === 'a' || e.key === 'A') setAd(c.name, true);
+  if (e.key === 'p' || e.key === 'P') setAd(c.name, false);
+});
+refresh();
+setInterval(refresh, 2000);
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<!--
+  Página de prueba local de Shomer Sport.
+  Sírvela por HTTP (los content scripts no se inyectan en file://):
+      cd tools/test-page && python3 -m http.server 8080
+  y abre http://localhost:8080. Elige un video de un partido de tu disco:
+  se carga como blob: (mismo origen), así que el filtro puede leer sus cuadros.
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Shomer Sport — página de prueba</title>
+  <style>
+    body { font: 15px system-ui, sans-serif; margin: 24px; background: #f4f6f9; }
+    .player { position: relative; width: min(960px, 100%); }
+    video { width: 100%; display: block; background: #000; }
+    .ad { margin-top: 16px; width: 728px; height: 90px; background: #ffd54f; display: flex; align-items: center; justify-content: center; }
+  </style>
+</head>
+<body>
+  <h1>Shomer Sport — prueba</h1>
+  <p><input type="file" id="file" accept="video/*"> <label><input type="checkbox" id="loop" checked> repetir</label></p>
+  <div class="player"><video id="v" controls playsinline></video></div>
+  <!-- Debe desaparecer con el bloqueo cosmético activo -->
+  <div class="ad ad-banner">BANNER DE PRUEBA (.ad-banner)</div>
+  <script>
+    const v = document.getElementById('v');
+    document.getElementById('file').addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      v.src = URL.createObjectURL(f);
+      v.play();
+    });
+    document.getElementById('loop').addEventListener('change', (e) => { v.loop = e.target.checked; });
+    v.loop = true;
+  </script>
+</body>
+</html>

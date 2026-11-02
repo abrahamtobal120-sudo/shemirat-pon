@@ -1,0 +1,40 @@
+{
+  "yolo": {
+    "file": "yolov8n-seg.onnx",
+    "size": 384
+  },
+  "gender": {
+    "file": "gender.onnx",
+    "width": 128,
+    "height": 256,
+    "mean": [
+      0,
+      0,
+      0
+    ],
+    "std": [
+      1,
+      1,
+      1
+    ],
+    "output": "softmax",
+    "femaleIndex": 1,
+    "pad": 0.08,
+    "source": "clip-zeroshot:MobileCLIP2-S0/dfndr2b"
+  },
+  "skin": {
+    "file": "skin.onnx",
+    "width": 128,
+    "height": 256,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  }
+}

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shomer TV — Partidos con recato</title>
+<style>
+  :root { --bg:#0f1318; --card:#1a2028; --fg:#e8ecf1; --mut:#8a95a3; --acc:#2fb36d; --red:#e0484f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--fg); }
+  header { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid #222a33; }
+  header h1 { margin:0; font-size:20px; }
+  header span { color:var(--mut); font-size:14px; }
+  main { display:grid; grid-template-columns:1fr 300px; gap:20px; padding:20px; max-width:1400px; margin:auto; }
+  @media (max-width:900px) { main { grid-template-columns:1fr; } }
+  .player { background:#000; border-radius:10px; overflow:hidden; aspect-ratio:16/9; position:relative; }
+  video { width:100%; height:100%; display:block; background:#000; }
+  .empty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--mut); text-align:center; padding:20px; }
+  #now { margin:12px 2px 0; font-size:18px; }
+  aside h2 { font-size:15px; color:var(--mut); margin:0 0 10px; text-transform:uppercase; letter-spacing:.05em; }
+  .ch { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; text-align:left;
+        background:var(--card); color:var(--fg); border:1px solid transparent; border-radius:8px; padding:12px 14px;
+        margin-bottom:8px; cursor:pointer; font-size:15px; }
+  .ch:hover { border-color:#334; }
+  .ch.sel { border-color:var(--acc); }
+  .tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#2a323c; color:var(--mut); white-space:nowrap; }
+  .tag.live { background:var(--red); color:#fff; }
+  .tag.down { background:#5a3a1a; color:#f3c27a; }
+  .note { color:var(--mut); font-size:13px; line-height:1.5; margin-top:16px; }
+  #keybox { display:none; padding:40px 20px; text-align:center; }
+  #keybox input, .auth input { padding:10px; font-size:16px; border-radius:6px; border:1px solid #334; background:var(--card); color:var(--fg); }
+  #keybox button, .auth button { padding:10px 18px; font-size:16px; border-radius:6px; border:0; background:var(--acc); color:#fff; cursor:pointer; }
+  #who { margin-left:auto; display:flex; gap:10px; align-items:center; color:var(--mut); font-size:14px; }
+  #who button { background:none; border:1px solid #334; color:var(--fg); border-radius:6px; padding:6px 10px; cursor:pointer; }
+  .auth { display:none; max-width:380px; margin:50px auto; padding:24px; background:var(--card); border-radius:12px; }
+  .auth h2 { margin:0 0 6px; font-size:20px; }
+  .auth input, .auth button { display:block; width:100%; margin-top:12px; }
+  .auth a { color:var(--acc); cursor:pointer; }
+  .err { color:#ff8a8f; font-size:14px; min-height:1.2em; margin-top:10px; }
+</style>
+</head>
+<body>
+<header><h1>🛡️ Shomer TV</h1><span>Partidos con filtro de recato</span>
+  <div id="who"></div></header>
+
+<form class="auth" id="login">
+  <h2>Entrar</h2>
+  <input name="email" type="email" placeholder="Correo" autocomplete="email" required>
+  <input name="password" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+  <button>Entrar</button>
+  <div class="err"></div>
+  <p class="note">¿No tienes cuenta? <a data-go="signup">Crear cuenta</a></p>
+</form>
+
+<form class="auth" id="signup">
+  <h2>Crear cuenta</h2>
+  <input name="name" placeholder="Nombre" autocomplete="name">
+  <input name="email" type="email" placeholder="Correo" autocomplete="email" required>
+  <input name="password" type="password" placeholder="Contraseña (mínimo 8)" autocomplete="new-password" minlength="8" required>
+  <button>Crear cuenta</button>
+  <div class="err"></div>
+  <p class="note">¿Ya tienes cuenta? <a data-go="login">Entrar</a></p>
+</form>
+
+<div class="auth" id="expired">
+  <h2>Tu suscripción no está activa</h2>
+  <p class="note">Tu cuenta <b id="exp-email"></b> está creada. Para ver los partidos, realiza el pago de la
+    suscripción y envíanos tu correo; en cuanto lo confirmemos, se activa y solo tienes que recargar esta página.</p>
+  <button onclick="location.reload()">Ya pagué: recargar</button>
+</div>
+
+<div id="keybox">
+  <p>Introduce tu clave de acceso</p>
+  <input id="key" type="password" autocomplete="current-password"> <button id="keyok">Entrar</button>
+</div>
+
+<main id="app">
+  <section>
+    <div class="player">
+      <video id="video" controls playsinline></video>
+      <div class="empty" id="empty">Elige un canal de la lista</div>
+    </div>
+    <div id="now"></div>
+  </section>
+  <aside>
+    <h2>Canales</h2>
+    <div id="list"></div>
+    <p class="note">Todas las transmisiones pasan por el filtro antes de llegar aquí.
+      Llevan unos segundos de retraso respecto a la señal original.</p>
+  </aside>
+</main>
+
+<script src="vendor/hls.min.js"></script>
+<script>
+'use strict';
+const video = document.getElementById('video');
+const empty = document.getElementById('empty');
+const list = document.getElementById('list');
+const now = document.getElementById('now');
+let hls = null, current = null;
+
+const LABEL = { live: 'EN VIVO', ended: 'Terminado', down: 'Señal caída', starting: 'Iniciando', unknown: '—' };
+
+let me = null;  // respuesta de /api/me
+
+async function api(path) {
+  const r = await fetch(path, { credentials: 'same-origin' });
+  if (r.status === 401 || r.status === 402) { await loadMe(); throw new Error('auth'); }
+  return r.json();
+}
+
+function show(id) {
+  for (const x of ['app', 'keybox', 'login', 'signup', 'expired'])
+    document.getElementById(x).style.display = x === id ? (x === 'app' ? '' : 'block') : 'none';
+  if (id !== 'app' && hls) { hls.destroy(); hls = null; video.removeAttribute('src'); }
+}
+
+function showKeyBox() { show('keybox'); }
+
+async function loadMe() {
+  me = await (await fetch('/api/me', { credentials: 'same-origin' })).json();
+  const who = document.getElementById('who');
+  who.textContent = '';
+  if (me.user) {
+    const s = document.createElement('span');
+    s.textContent = me.user.email;
+    const b = document.createElement('button');
+    b.textContent = 'Salir';
+    b.onclick = async () => {
+      await fetch('/api/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      location.reload();
+    };
+    who.append(s, b);
+  }
+  if (me.status === 200) show('app');
+  else if (me.status === 402) { document.getElementById('exp-email').textContent = me.user.email; show('expired'); }
+  else show(me.accounts ? 'login' : 'keybox');
+  return me;
+}
+
+document.querySelectorAll('[data-go]').forEach(a => a.onclick = () => show(a.dataset.go));
+for (const id of ['login', 'signup']) {
+  const f = document.getElementById(id);
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const err = f.querySelector('.err');
+    err.textContent = '';
+    const r = await fetch('/api/' + id, { method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(new FormData(f))) });
+    const j = await r.json();
+    if (!r.ok) { err.textContent = j.error || 'Error'; return; }
+    if (await loadMe() && me.status === 200) refresh();
+  };
+}
+document.getElementById('keyok').onclick = () => {
+  const k = document.getElementById('key').value.trim();
+  document.cookie = 'shomer_key=' + encodeURIComponent(k) + '; path=/; max-age=31536000; SameSite=Strict';
+  location.reload();
+};
+
+function render(chans) {
+  list.textContent = '';
+  if (!chans.length) {
+    list.innerHTML = '<p class="note">No hay canales todavía.</p>';
+    return;
+  }
+  for (const c of chans) {
+    const b = document.createElement('button');
+    b.className = 'ch' + (current === c.name ? ' sel' : '');
+    const n = document.createElement('span');
+    n.textContent = c.name;
+    const t = document.createElement('span');
+    const st = c.vod ? 'ended' : c.state;
+    t.className = 'tag ' + st;
+    t.textContent = c.vod ? 'Repetición' : c.ad ? 'EN VIVO · pausa' : (LABEL[st] || st);
+    b.append(n, t);
+    b.onclick = () => play(c);
+    list.append(b);
+  }
+}
+
+function play(c) {
+  current = c.name;
+  now.textContent = c.name + (c.vod ? ' · repetición' : '');
+  empty.style.display = 'none';
+  if (hls) { hls.destroy(); hls = null; }
+  if (window.Hls && Hls.isSupported()) {
+    hls = new Hls({ liveSyncDurationCount: 3, xhrSetup: (x) => { x.withCredentials = true; } });
+    hls.loadSource(c.url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+    hls.on(Hls.Events.ERROR, (_, d) => {
+      if (!d.fatal) return;
+      if (d.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+      else { empty.textContent = 'La señal no está disponible. Reintentando…'; empty.style.display = 'flex';
+             setTimeout(() => current === c.name && play(c), 5000); }
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = c.url; // Safari / iPhone reproducen HLS de forma nativa
+    video.play().catch(() => {});
+  }
+  refresh();
+}
+
+async function refresh() {
+  try { render(await api('/api/channels')); } catch (e) { /* sin acceso o sin red */ }
+}
+loadMe().then(() => { if (me.status === 200) refresh(); });
+setInterval(() => { if (me && me.status === 200) refresh(); }, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+/* guide.css — Página "Dónde ver gratis"; mismos colores que el popup. */
+:root { --bg: #f3f5f9; --card: #fff; --text: #1b2230; --muted: #687385; --accent: #1f6feb; --border: #e2e6ee; --warn: #9a6200; --warn-soft: #fff4dc; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #12151a; --card: #1b2028; --text: #e7ebf0; --muted: #98a2b3; --accent: #4d8dff; --border: #2a313c; --warn: #f2b84b; --warn-soft: #362a12; }
+}
+body { margin: 0 auto; max-width: 760px; padding: 24px 16px; background: var(--bg); color: var(--text);
+  font: 15px/1.5 system-ui, "Segoe UI", Arial, sans-serif; }
+header { display: flex; gap: 14px; align-items: flex-start; }
+h1 { margin: 0 0 4px; font-size: 22px; }
+header p { margin: 0; color: var(--muted); }
+.warn { background: var(--warn-soft); color: var(--warn); padding: 10px 12px; border-radius: 8px; }
+section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; margin-block: 12px; }
+h2 { font-size: 16px; margin: 0 0 8px; }
+ul { margin: 0; padding: 0; list-style: none; }
+li { padding: 6px 0; border-top: 1px solid var(--border); }
+li:first-child { border-top: 0; }
+a { color: var(--accent); font-weight: 600; text-decoration: none; }
+a:hover { text-decoration: underline; }
+small { display: block; color: var(--muted); font-size: 12.5px; }

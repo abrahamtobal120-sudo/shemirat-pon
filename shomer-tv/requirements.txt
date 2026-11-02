@@ -1,0 +1,6 @@
+av>=12
+numpy
+opencv-python-headless
+# En un servidor con GPU NVIDIA usa onnxruntime-gpu en lugar de onnxruntime
+onnxruntime
+Pillow>=10

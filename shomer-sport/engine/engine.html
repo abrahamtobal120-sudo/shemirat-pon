@@ -1,0 +1,11 @@
+<!doctype html>
+<!--
+  engine.html — Página mínima del motor, cargada como <iframe> oculto por el
+  content script. Existe porque un content script NO puede crear un Web Worker
+  desde chrome-extension:// (origen distinto); este iframe sí puede, y además
+  aplica la CSP de la extensión (wasm permitido) en lugar de la de la página.
+-->
+<html>
+<head><meta charset="utf-8"><title>Shomer Sport engine</title></head>
+<body><script src="engine.js"></script></body>
+</html>
