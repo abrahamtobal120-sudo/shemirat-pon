@@ -49,7 +49,7 @@ public class CaptureService extends Service {
                 @Override public void onStop() { stopSelf(); }
                 @Override public void onCapturedContentResize(int width, int height) {
                     // A new consent session is required for this prototype after rotation.
-                    stopSelf();
+                    if (reader != null && (reader.getWidth() != width || reader.getHeight() != height)) stopSelf();
                 }
             }, handler);
             DisplayMetrics metrics = getResources().getDisplayMetrics();
