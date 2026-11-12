@@ -6,6 +6,7 @@ repo = Path(__file__).resolve().parent.parent
 output = Path(__file__).resolve().parent / "public"
 output.mkdir(exist_ok=True)
 shutil.copyfile(Path(__file__).resolve().parent / "index.html", output / "index.html")
+shutil.copyfile(Path(__file__).resolve().parent / "guide.js", output / "guide.js")
 downloads = output / "downloads"
 downloads.mkdir(exist_ok=True)
 extension = repo / "shomer-web"
