@@ -1,0 +1,21 @@
+name: Shomer
+options:
+  bundleIdPrefix: dev.shomer
+targets:
+  Shomer:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.shomer.ios
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Shomer
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        SWIFT_VERSION: "5.0"
+    entitlements:
+      path: Shomer.entitlements
+      properties:
+        com.apple.developer.family-controls: true

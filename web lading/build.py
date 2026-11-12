@@ -3,9 +3,9 @@ import shutil
 import zipfile
 
 repo = Path(__file__).resolve().parent.parent
-output = repo / "public"
+output = Path(__file__).resolve().parent / "public"
 output.mkdir(exist_ok=True)
-shutil.copyfile(repo / "website" / "index.html", output / "index.html")
+shutil.copyfile(Path(__file__).resolve().parent / "index.html", output / "index.html")
 downloads = output / "downloads"
 downloads.mkdir(exist_ok=True)
 extension = repo / "shomer-web"
