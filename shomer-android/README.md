@@ -12,6 +12,8 @@ gradle :app:assembleDebug
 
 El resultado esperado es `app/build/outputs/apk/debug/app-debug.apk`, firmado solo con la clave de depuración local. No distribuirlo como producto terminado. Se necesita un SDK/Gradle funcional y una prueba física antes de afirmar que existe un APK verificado.
 
+El workflow **Android prototype APK** también intenta construir este APK de depuración y adjuntarlo, con su SHA-256, como artefacto del resultado de GitHub Actions. Acceder al artefacto requiere los permisos de GitHub correspondientes. Es una compilación experimental firmada con una clave de depuración generada en el runner: no es una versión release, no tiene identidad de firma estable y no puede actualizar de forma fiable instalaciones de otras compilaciones. Su disponibilidad no demuestra que se haya instalado o probado en un teléfono. El prototipo no contiene filtro visual.
+
 ## Estado y límites
 
 - La interfaz muestra inicio, espera del primer cuadro, recepción, parada y errores; no demuestra que el contenido capturado sea visible o no esté protegido. El estado vive en el proceso, no es un registro persistente.
