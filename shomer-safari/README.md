@@ -10,7 +10,7 @@ Se necesita una Mac con Xcode completo, sus herramientas de línea de comandos y
 python3 shomer-safari/prepare.py
 ```
 
-El script copia los archivos necesarios de `shomer-web` a `shomer-safari/dist/extension` y ejecuta el convertidor de Apple para generar un proyecto iOS en `shomer-safari/dist`. No modifica la extensión de computadora ni sobrescribe una generación anterior. Si el directorio ya existe, muévelo manualmente antes de volver a ejecutar. El identificador `dev.shomer.safari` es un marcador para desarrollo: hay que sustituirlo por identificadores únicos autorizados para la app y la extensión en Xcode.
+El script copia los archivos necesarios de `shomer-web` a `shomer-safari/dist/extension` y ejecuta el convertidor de Apple para generar un proyecto iOS en `shomer-safari/dist`. No modifica la extensión de computadora ni sobrescribe una generación anterior. Si el directorio ya existe, muévelo manualmente antes de volver a ejecutar. El identificador `dev.shomer.Shomer-Safari` es un marcador para desarrollo: hay que sustituirlo por identificadores únicos autorizados para la app y la extensión en Xcode.
 
 Las pruebas locales de preparación (no ejecutan el convertidor) se pueden correr con `python3 -m unittest discover -s shomer-safari -p 'test_*.py'`.
 

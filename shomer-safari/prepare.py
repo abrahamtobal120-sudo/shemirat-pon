@@ -35,7 +35,7 @@ def main():
             "--ios-only", "--no-open", "--no-prompt", "--copy-resources",
             "--project-location", str(OUTPUT),
             "--app-name", "Shomer Safari",
-            "--bundle-identifier", "dev.shomer.safari",
+            "--bundle-identifier", "dev.shomer.Shomer-Safari",
         ],
         check=True,
     )
