@@ -1,0 +1,35 @@
+name: Safari iOS prototype
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feat/mobile-install-guides
+    paths:
+      - 'shomer-safari/**'
+      - 'shomer-web/**'
+      - '.github/workflows/safari-prototype.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate the experimental Safari project
+        run: python3 shomer-safari/prepare.py
+      - name: Inspect generated Xcode project
+        run: |
+          project="$(find shomer-safari/dist -name '*.xcodeproj' -print -quit)"
+          test -n "$project"
+          xcodebuild -list -project "$project"
+          xcodebuild -project "$project" -scheme "Shomer Safari" \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shomer-safari-proyecto-experimental
+          path: shomer-safari/dist
+          if-no-files-found: error
