@@ -15,9 +15,7 @@ public class MainActivity extends Activity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(32, 56, 32, 32);
         TextView text = new TextView(this);
-        text.setText("Shomer Android — prueba de captura
-
-Esta versión comprueba el permiso para leer la pantalla. El filtrado visual sigue pendiente. Las capturas se descartan en memoria.");
+        text.setText("Shomer Android — prueba de captura\n\nEsta versión comprueba el permiso para leer la pantalla. El filtrado visual sigue pendiente. Las capturas se descartan en memoria.");
         layout.addView(text);
         Button start = new Button(this);
         start.setText("Autorizar captura de prueba");
