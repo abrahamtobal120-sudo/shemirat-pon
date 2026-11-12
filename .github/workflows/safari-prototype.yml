@@ -28,8 +28,30 @@ jobs:
           xcodebuild -list -project "$project"
           xcodebuild -project "$project" -scheme "Shomer Safari" \
             -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+      - name: Build unsigned iPhone prototype
+        run: |
+          project="$(find shomer-safari/dist -name '*.xcodeproj' -print -quit)"
+          test -n "$project"
+          xcodebuild -project "$project" -scheme "Shomer Safari" \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/shomer-safari-build" \
+            CODE_SIGNING_ALLOWED=NO build
+          app="$RUNNER_TEMP/shomer-safari-build/Build/Products/Debug-iphoneos/Shomer Safari.app"
+          test -d "$app"
+          mkdir -p "$RUNNER_TEMP/shomer-unsigned/Payload"
+          ditto "$app" "$RUNNER_TEMP/shomer-unsigned/Payload/Shomer Safari.app"
+          cd "$RUNNER_TEMP/shomer-unsigned"
+          zip -qry "$GITHUB_WORKSPACE/shomer-safari-sin-firmar.ipa" Payload
+          cd "$GITHUB_WORKSPACE"
+          shasum -a 256 shomer-safari-sin-firmar.ipa > shomer-safari-sin-firmar.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: shomer-safari-proyecto-experimental
           path: shomer-safari/dist
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shomer-safari-ipa-sin-firmar
+          path: |
+            shomer-safari-sin-firmar.ipa
+            shomer-safari-sin-firmar.sha256
           if-no-files-found: error

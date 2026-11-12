@@ -36,7 +36,7 @@ jobs:
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
       - name: Build debug prototype
         working-directory: shomer-android
-        run: gradle :app:assembleDebug
+        run: gradle :app:assembleDebug :app:assembleRelease
       - name: Record APK checksum
         working-directory: shomer-android/app/build/outputs/apk/debug
         run: |
@@ -48,4 +48,14 @@ jobs:
           path: |
             shomer-android/app/build/outputs/apk/debug/app-debug.apk
             shomer-android/app/build/outputs/apk/debug/SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Record unsigned APK checksum
+        working-directory: shomer-android/app/build/outputs/apk/release
+        run: sha256sum app-release-unsigned.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shomer-android-prototipo-sin-firmar
+          path: |
+            shomer-android/app/build/outputs/apk/release/app-release-unsigned.apk
+            shomer-android/app/build/outputs/apk/release/SHA256SUMS.txt
           if-no-files-found: error
