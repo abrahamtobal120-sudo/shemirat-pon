@@ -39,7 +39,9 @@ jobs:
         run: gradle :app:assembleDebug
       - name: Record APK checksum
         working-directory: shomer-android/app/build/outputs/apk/debug
-        run: sha256sum app-debug.apk > SHA256SUMS.txt
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app-debug.apk
+          sha256sum app-debug.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: shomer-android-prototipo-debug
