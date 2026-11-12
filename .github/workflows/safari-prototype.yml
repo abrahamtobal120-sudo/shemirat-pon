@@ -26,6 +26,8 @@ jobs:
           project="$(find shomer-safari/dist -name '*.xcodeproj' -print -quit)"
           test -n "$project"
           xcodebuild -list -project "$project"
+          xcodebuild -project "$project" -scheme "Shomer Safari" \
+            -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
       - uses: actions/upload-artifact@v4
         with:
           name: shomer-safari-proyecto-experimental

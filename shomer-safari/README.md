@@ -18,4 +18,4 @@ Abre el proyecto generado en Xcode, configura el equipo y la firma de ambos targ
 
 ## Limitaciones y pruebas pendientes
 
-Este procedimiento de conversión no se ha ejecutado ni verificado con Xcode. La conversión no garantiza compatibilidad: hay que comprobar las APIs de fondo y de reglas de red, el iframe y los mensajes del motor, Web Workers, WebAssembly/ONNX, memoria, acceso a recursos y permisos de Safari. Deben probarse imágenes, videos, activación/desactivación, errores y comportamiento tras cerrar y reabrir Safari en iPhone real. No se ha medido rendimiento ni se ha producido un IPA o un enlace de TestFlight/App Store.
+La conversión generó un proyecto con Xcode 26.6 en GitHub Actions; eso no garantiza compatibilidad ni instalación. Hay que comprobar las APIs de fondo y de reglas de red, el iframe y los mensajes del motor, Web Workers, WebAssembly/ONNX, memoria, acceso a recursos y permisos de Safari. Deben probarse imágenes, videos, activación/desactivación, errores y comportamiento tras cerrar y reabrir Safari en iPhone real. No se ha medido rendimiento ni se ha producido un IPA o un enlace de TestFlight/App Store.
