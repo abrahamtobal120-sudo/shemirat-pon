@@ -20,6 +20,15 @@
     return { device, browser };
   }
 
+  function systemVersion(userAgent, device) {
+    const ua = userAgent || "";
+    let match;
+    if (device === "android") match = ua.match(/Android\s+([\d.]+)/i);
+    else if (device === "iphone" || device === "ipad") match = ua.match(/(?:CPU (?:iPhone )?OS)\s+([\d_]+)/i);
+    else if (device === "mac") match = ua.match(/Mac OS X\s+([\d_.]+)/i);
+    return match ? match[1].replace(/_/g, ".") : null;
+  }
+
   function guide(device, browser, goal) {
     const mobile = device === "android" || device === "iphone" || device === "ipad";
     const desktop = device === "windows" || device === "mac" || device === "linux";
@@ -40,7 +49,7 @@
     return { title: "Instala la extensión en tu computadora", note: "Necesitas Chrome, Edge o Brave y espacio para el archivo descargado. No existe una app nativa de escritorio.", steps: ["Descarga el archivo ZIP de Shomer Web desde el enlace de abajo.", "Abre Descargas y descomprime el archivo ZIP.", "Guarda la carpeta shomer-web en un lugar permanente de tu computadora.", "Escribe " + address + " en la barra de direcciones y abre esa página.", "Activa «Modo de desarrollador».", "Pulsa «Cargar descomprimida» y selecciona la carpeta shomer-web.", "Abre Shomer Web desde el menú de extensiones y revisa sus ajustes."], link: "/downloads/shomer-web.zip", linkText: "Descargar Shomer Web (ZIP)" };
   }
 
-  if (typeof module !== "undefined" && module.exports) module.exports = { detect, guide };
+  if (typeof module !== "undefined" && module.exports) module.exports = { detect, systemVersion, guide };
   if (typeof document === "undefined") return;
   const device = document.getElementById("device");
   const browser = document.getElementById("browser");
@@ -48,7 +57,8 @@
   const found = detect(navigator.userAgent, navigator.platform, navigator.maxTouchPoints);
   device.value = found.device;
   browser.value = found.browser;
-  document.getElementById("detected").textContent = "Detección aproximada: " + device.options[device.selectedIndex].text + " · " + browser.options[browser.selectedIndex].text + ". La versión del sistema no se ha comprobado.";
+  const version = systemVersion(navigator.userAgent, found.device);
+  document.getElementById("detected").textContent = "Detección aproximada: " + device.options[device.selectedIndex].text + " · " + browser.options[browser.selectedIndex].text + ". Versión del sistema según el navegador: " + (version || "no se pudo detectar") + ".";
 
   function render() {
     const result = guide(device.value, browser.value, goal.value);
