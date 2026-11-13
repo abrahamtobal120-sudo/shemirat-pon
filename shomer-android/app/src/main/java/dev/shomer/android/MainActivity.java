@@ -10,6 +10,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
+import android.net.VpnService;
+import android.provider.Settings;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
@@ -19,6 +24,16 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
     private static final int CAPTURE_REQUEST = 10;
     private static final int NOTIFICATION_REQUEST = 11;
+    private static final int VPN_REQUEST = 12;
+    private TextView filterStatus;
+    private RadioButton wholePhone;
+    private RadioButton browsersOnly;
+    private Button filterStart;
+    private Button filterStop;
+    private final android.os.Handler ticker = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable tick = new Runnable() {
+        @Override public void run() { refresh(); ticker.postDelayed(this, 2000); }
+    };
     private TextView status;
     private TextView notificationStatus;
     private Button start;
@@ -35,8 +50,10 @@ public class MainActivity extends Activity {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(32, 56, 32, 32);
+        buildFilterSection(layout);
         TextView text = new TextView(this);
-        text.setText("Shomer Android — prueba de captura\n\nNo filtra ni cubre contenido: los cuadros se descartan en memoria. Las pantallas protegidas pueden no ser capturables. El consentimiento es necesario para cada sesión.");
+        text.setPadding(0, 48, 0, 0);
+        text.setText("Prueba experimental: filtro visual por captura de pantalla\n\nTodavía no cubre imágenes: los cuadros se descartan en memoria. Las pantallas protegidas pueden no ser capturables. El consentimiento es necesario para cada sesión.");
         layout.addView(text);
         status = new TextView(this);
         layout.addView(status);
@@ -68,7 +85,75 @@ public class MainActivity extends Activity {
         stop.setText("Detener captura");
         stop.setOnClickListener(view -> stopService(new Intent(this, CaptureService.class)));
         layout.addView(stop);
-        setContentView(layout);
+        ScrollView scroll = new ScrollView(this);
+        scroll.addView(layout);
+        setContentView(scroll);
+        refresh();
+    }
+
+    private void buildFilterSection(LinearLayout layout) {
+        TextView title = new TextView(this);
+        title.setTextSize(22);
+        title.setText("Shomer — filtro");
+        layout.addView(title);
+        TextView about = new TextView(this);
+        about.setText("Bloquea sitios para adultos y publicidad mediante un filtro DNS local (VPN de Shomer). "
+            + "Las consultas permitidas se resuelven con CleanBrowsing Family, que además fuerza la búsqueda segura de Google, Bing y YouTube. "
+            + "El resto del tráfico no pasa por Shomer y no se guarda historial. No analiza imágenes dentro de otras apps.\n\n¿Dónde quieres filtrar?");
+        layout.addView(about);
+        RadioGroup scope = new RadioGroup(this);
+        wholePhone = new RadioButton(this);
+        wholePhone.setId(android.view.View.generateViewId());
+        wholePhone.setText("Todo el teléfono (todas las apps)");
+        browsersOnly = new RadioButton(this);
+        browsersOnly.setId(android.view.View.generateViewId());
+        browsersOnly.setText("Solo navegadores (Chrome, Firefox, Samsung Internet…)");
+        scope.addView(wholePhone);
+        scope.addView(browsersOnly);
+        boolean browsers = FilterVpnService.SCOPE_BROWSERS.equals(
+            FilterVpnService.prefs(this).getString(FilterVpnService.PREF_SCOPE, FilterVpnService.SCOPE_PHONE));
+        scope.check(browsers ? browsersOnly.getId() : wholePhone.getId());
+        layout.addView(scope);
+        filterStart = new Button(this);
+        filterStart.setText("Activar filtro");
+        filterStart.setOnClickListener(view -> {
+            Intent consent = VpnService.prepare(this);
+            if (consent == null) startFilter();
+            else startActivityForResult(consent, VPN_REQUEST);
+        });
+        layout.addView(filterStart);
+        filterStop = new Button(this);
+        filterStop.setText("Detener filtro");
+        filterStop.setOnClickListener(view -> startService(new Intent(this, FilterVpnService.class).setAction(FilterVpnService.ACTION_STOP)));
+        layout.addView(filterStop);
+        Button always = new Button(this);
+        always.setText("Hacerlo permanente (VPN siempre activa)");
+        always.setOnClickListener(view -> {
+            try {
+                startActivity(new Intent(Settings.ACTION_VPN_SETTINGS));
+            } catch (RuntimeException missing) {
+                startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
+            }
+        });
+        layout.addView(always);
+        TextView tip = new TextView(this);
+        tip.setText("Para que no se pueda saltar: en Ajustes › VPN › Shomer activa «VPN siempre activa» y «Bloquear conexiones sin VPN». "
+            + "Si «DNS privado» tiene un nombre de proveedor, cámbialo a «Automático» o «Desactivado». Solo puede haber una VPN activa a la vez.");
+        layout.addView(tip);
+        filterStatus = new TextView(this);
+        filterStatus.setPadding(0, 16, 0, 0);
+        layout.addView(filterStatus);
+    }
+
+    private void startFilter() {
+        String scope = browsersOnly.isChecked() ? FilterVpnService.SCOPE_BROWSERS : FilterVpnService.SCOPE_PHONE;
+        try {
+            startService(new Intent(this, FilterVpnService.class)
+                .setAction(FilterVpnService.ACTION_START)
+                .putExtra(FilterVpnService.PREF_SCOPE, scope));
+        } catch (RuntimeException failure) {
+            filterStatus.setText("No se pudo iniciar el filtro (" + failure.getClass().getSimpleName() + ").");
+        }
         refresh();
     }
 
@@ -82,7 +167,12 @@ public class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
-        refresh();
+        ticker.post(tick);
+    }
+
+    @Override protected void onPause() {
+        ticker.removeCallbacks(tick);
+        super.onPause();
     }
 
     @Override protected void onStop() {
@@ -96,6 +186,13 @@ public class MainActivity extends Activity {
     }
 
     private void refresh() {
+        if (filterStatus != null) {
+            boolean on = FilterVpnService.isRunning();
+            filterStatus.setText("Estado del filtro: " + FilterVpnService.getStatus()
+                + (on ? "\nConsultas revisadas: " + FilterVpnService.getQueries() + " · bloqueadas: " + FilterVpnService.getBlocked() : ""));
+            filterStart.setText(on ? "Aplicar cambio de modo" : "Activar filtro");
+            filterStop.setEnabled(on);
+        }
         status.setText("Estado: " + CaptureService.getStatus());
         NotificationManager manager = getSystemService(NotificationManager.class);
         NotificationChannel channel = manager.getNotificationChannel("capture");
@@ -109,6 +206,11 @@ public class MainActivity extends Activity {
 
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
+        if (request == VPN_REQUEST) {
+            if (result == RESULT_OK) startFilter();
+            else filterStatus.setText("No se autorizó la VPN de Shomer; el filtro no está activo.");
+            return;
+        }
         if (request != CAPTURE_REQUEST) return;
         consentPending = false;
         if (result != RESULT_OK || data == null) {
