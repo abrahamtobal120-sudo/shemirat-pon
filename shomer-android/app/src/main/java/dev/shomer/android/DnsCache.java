@@ -18,21 +18,21 @@ final class DnsCache {
 
     interface Clock { long millis(); }
 
-    private static final class Entry {
+    private static final class Cached {
         final byte[] response;
         final long expiresAt;
-        Entry(byte[] response, long expiresAt) { this.response = response; this.expiresAt = expiresAt; }
+        Cached(byte[] response, long expiresAt) { this.response = response; this.expiresAt = expiresAt; }
     }
 
-    private final Map<String, Entry> entries;
+    private final Map<String, Cached> entries;
     private final Clock clock;
 
     DnsCache(int capacity) { this(capacity, System::currentTimeMillis); }
 
     DnsCache(final int capacity, Clock clock) {
         this.clock = clock;
-        this.entries = new LinkedHashMap<String, Entry>(64, 0.75f, true) {
-            @Override protected boolean removeEldestEntry(Map.Entry<String, Entry> eldest) { return size() > capacity; }
+        this.entries = new LinkedHashMap<String, Cached>(64, 0.75f, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<String, Cached> eldest) { return size() > capacity; }
         };
     }
 
@@ -44,7 +44,7 @@ final class DnsCache {
     byte[] get(byte[] query) {
         String key = key(query);
         if (key == null) return null;
-        Entry entry;
+        Cached entry;
         synchronized (this) {
             entry = entries.get(key);
             if (entry == null) return null;
@@ -72,7 +72,7 @@ final class DnsCache {
         int ttl = minTtl(response);
         if (ttl < 0) return; // malformed
         ttl = Math.max(MIN_TTL_SECONDS, Math.min(MAX_TTL_SECONDS, ttl));
-        Entry entry = new Entry(response.clone(), clock.millis() + ttl * 1000L);
+        Cached entry = new Cached(response.clone(), clock.millis() + ttl * 1000L);
         synchronized (this) { entries.put(key, entry); }
     }
 
