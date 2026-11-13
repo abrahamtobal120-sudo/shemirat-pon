@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * Draws opaque covers above every app with one small overlay window per cover. Separate windows
  * (instead of one full-screen window) matter: since Android 12 a full-screen opaque overlay from
- * another app would block every touch on the phone. Touches only stop working on the covered areas.
- * Main thread only.
+ * another app would block every touch on the phone. Main thread only.
  */
 final class CoverOverlay {
     private static final int COVER_COLOR = Color.rgb(96, 104, 116);
@@ -86,8 +85,10 @@ final class CoverOverlay {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
             r.width(), r.height(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            // Not touchable: up to Android 11 touches reach the app below; from Android 12 the system
+            // drops touches that land on an opaque cover (untrusted-touch protection).
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
                 | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.OPAQUE);

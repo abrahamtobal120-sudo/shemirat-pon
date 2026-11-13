@@ -39,6 +39,7 @@ public class MainActivity extends Activity {
     private Button start;
     private Button stop;
     private boolean consentPending;
+    private Button overlayPermission;
 
     private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) { refresh(); }
@@ -53,8 +54,17 @@ public class MainActivity extends Activity {
         buildFilterSection(layout);
         TextView text = new TextView(this);
         text.setPadding(0, 48, 0, 0);
-        text.setText("Prueba experimental: filtro visual por captura de pantalla\n\nTodavía no cubre imágenes: los cuadros se descartan en memoria. Las pantallas protegidas pueden no ser capturables. El consentimiento es necesario para cada sesión.");
+        text.setTextSize(18);
+        text.setText("Filtro de imágenes en todo el teléfono (experimental)");
         layout.addView(text);
+        TextView imageAbout = new TextView(this);
+        imageAbout.setText("Analiza la pantalla en el propio teléfono, detecta a las personas con el mismo modelo que Shomer Web "
+            + "y tapa a las mujeres con un recuadro gris encima de cualquier app (fotos, redes, vídeos, navegador). "
+            + "Las imágenes no se guardan ni se envían.\n\n"
+            + "Límites: tarda una fracción de segundo en tapar algo nuevo. Al desplazarte, los recuadros se recalculan y algo puede verse un instante. "
+            + "Las apps que bloquean capturas (p. ej. vídeo con DRM) se ven en negro para Shomer y no se pueden filtrar. "
+            + "Android pide permiso de captura cada vez que se activa. Gasta más batería que el filtro de sitios.");
+        layout.addView(imageAbout);
         status = new TextView(this);
         layout.addView(status);
         notificationStatus = new TextView(this);
@@ -68,12 +78,25 @@ public class MainActivity extends Activity {
         });
         if (Build.VERSION.SDK_INT >= 33) layout.addView(notifications);
         start = new Button(this);
-        start.setText("Autorizar captura de prueba");
+        overlayPermission = new Button(this);
+        overlayPermission.setText("Permitir «Mostrar sobre otras apps»");
+        overlayPermission.setOnClickListener(view -> requestOverlayPermission());
+        layout.addView(overlayPermission);
+        start.setText("Activar filtro de imágenes");
         start.setOnClickListener(view -> {
+            if (!Settings.canDrawOverlays(this)) {
+                requestOverlayPermission();
+                return;
+            }
             try {
                 consentPending = true;
                 refresh();
-                startActivityForResult(getSystemService(MediaProjectionManager.class).createScreenCaptureIntent(), CAPTURE_REQUEST);
+                MediaProjectionManager projections = getSystemService(MediaProjectionManager.class);
+                // The covers are placed in screen coordinates, so ask for the whole screen (not a single app).
+                Intent capture = Build.VERSION.SDK_INT >= 34
+                    ? projections.createScreenCaptureIntent(android.media.projection.MediaProjectionConfig.createConfigForDefaultDisplay())
+                    : projections.createScreenCaptureIntent();
+                startActivityForResult(capture, CAPTURE_REQUEST);
             } catch (RuntimeException failure) {
                 consentPending = false;
                 CaptureService.report(this, "No se pudo abrir la autorización (" + failure.getClass().getSimpleName() + ").");
@@ -82,7 +105,7 @@ public class MainActivity extends Activity {
         });
         layout.addView(start);
         stop = new Button(this);
-        stop.setText("Detener captura");
+        stop.setText("Detener filtro de imágenes");
         stop.setOnClickListener(view -> stopService(new Intent(this, CaptureService.class)));
         layout.addView(stop);
         ScrollView scroll = new ScrollView(this);
@@ -99,7 +122,7 @@ public class MainActivity extends Activity {
         TextView about = new TextView(this);
         about.setText("Bloquea sitios para adultos y publicidad mediante un filtro DNS local (VPN de Shomer). "
             + "Las consultas permitidas se resuelven con CleanBrowsing Family, que además fuerza la búsqueda segura de Google, Bing y YouTube. "
-            + "El resto del tráfico no pasa por Shomer y no se guarda historial. No analiza imágenes dentro de otras apps.\n\n¿Dónde quieres filtrar?");
+            + "El resto del tráfico no pasa por Shomer y no se guarda historial. Para tapar imágenes dentro de las apps, usa además el filtro de imágenes de abajo.\n\n¿Dónde quieres filtrar?");
         layout.addView(about);
         RadioGroup scope = new RadioGroup(this);
         wholePhone = new RadioButton(this);
@@ -113,6 +136,8 @@ public class MainActivity extends Activity {
         boolean browsers = FilterVpnService.SCOPE_BROWSERS.equals(
             FilterVpnService.prefs(this).getString(FilterVpnService.PREF_SCOPE, FilterVpnService.SCOPE_PHONE));
         scope.check(browsers ? browsersOnly.getId() : wholePhone.getId());
+        // Changing the mode while the filter is on applies it right away (no extra button).
+        scope.setOnCheckedChangeListener((group, checked) -> { if (FilterVpnService.isRunning()) startFilter(); });
         layout.addView(scope);
         filterStart = new Button(this);
         filterStart.setText("Activar filtro");
@@ -145,6 +170,16 @@ public class MainActivity extends Activity {
         layout.addView(filterStatus);
     }
 
+    private void requestOverlayPermission() {
+        try {
+            startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                android.net.Uri.parse("package:" + getPackageName())));
+        } catch (RuntimeException missing) {
+            CaptureService.report(this, "Abre Ajustes › Apps › Shomer y permite «Mostrar sobre otras apps».");
+            refresh();
+        }
+    }
+
     private void startFilter() {
         String scope = browsersOnly.isChecked() ? FilterVpnService.SCOPE_BROWSERS : FilterVpnService.SCOPE_PHONE;
         try {
@@ -167,6 +202,8 @@ public class MainActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        // If the filter was on but Android stopped it (low memory, update…), bring it back now.
+        FilterVpnService.resumeIfEnabled(this);
         ticker.post(tick);
     }
 
@@ -190,10 +227,12 @@ public class MainActivity extends Activity {
             boolean on = FilterVpnService.isRunning();
             filterStatus.setText("Estado del filtro: " + FilterVpnService.getStatus()
                 + (on ? "\nConsultas revisadas: " + FilterVpnService.getQueries() + " · bloqueadas: " + FilterVpnService.getBlocked() : ""));
-            filterStart.setText(on ? "Aplicar cambio de modo" : "Activar filtro");
+            filterStart.setText(on ? "Filtro activo" : "Activar filtro");
+            filterStart.setEnabled(!on);
             filterStop.setEnabled(on);
         }
         status.setText("Estado: " + CaptureService.getStatus());
+        overlayPermission.setVisibility(Settings.canDrawOverlays(this) ? android.view.View.GONE : android.view.View.VISIBLE);
         NotificationManager manager = getSystemService(NotificationManager.class);
         NotificationChannel channel = manager.getNotificationChannel("capture");
         boolean enabled = manager.areNotificationsEnabled()

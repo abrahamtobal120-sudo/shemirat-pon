@@ -9,7 +9,7 @@ La app incluye un filtro DNS local (`FilterVpnService`, basado en `VpnService` d
 
 Los dominios de `app/src/main/assets/blocklist.txt` (publicidad de `shomer-web/rules/ad_rules.json` y sitios para adultos), sus subdominios y los nombres que contienen palabras clave como `porn` o `xxx` reciben NXDOMAIN. El resto se reenvía a **CleanBrowsing Family** (`185.228.168.168`, `185.228.169.168`), que también bloquea contenido para adultos y fuerza la búsqueda segura de Google, Bing y YouTube; si no responde se usa **Cloudflare for Families** (`1.1.1.3`, `1.0.0.3`). Solo pasan por la VPN las consultas DNS; el resto del tráfico va directo y no se guarda historial. La app muestra cuántas consultas revisó y bloqueó.
 
-Para que no se pueda saltar fácilmente: Ajustes › Red › VPN › Shomer › **VPN siempre activa** y **Bloquear conexiones sin VPN** (botón «Hacerlo permanente» en la app). Límites conocidos: solo una VPN a la vez; un «DNS privado» con nombre de proveedor o apps con DNS cifrado propio (DoH) pueden saltarse el filtro; no analiza imágenes dentro de las apps (eso sigue siendo la prueba experimental de captura descrita abajo).
+Para que no se pueda saltar fácilmente: Ajustes › Red › VPN › Shomer › **VPN siempre activa** y **Bloquear conexiones sin VPN** (botón «Hacerlo permanente» en la app). Límites conocidos: solo una VPN a la vez; un «DNS privado» con nombre de proveedor o apps con DNS cifrado propio (DoH) pueden saltarse el filtro; no analiza imágenes dentro de las apps (eso lo hace el filtro de imágenes descrito abajo).
 
 La lógica de paquetes DNS está en `DnsFilter.java` y tiene pruebas JUnit (`gradle :app:testDebugUnitTest`).
 
@@ -23,42 +23,44 @@ keytool -genkeypair -v -keystore shomer-release.jks -alias shomer -keyalg RSA -k
 
 En GitHub Actions, el workflow firma automáticamente si el repositorio tiene los secretos `SHOMER_KEYSTORE_BASE64` (el .jks en base64), `SHOMER_KEYSTORE_PASSWORD`, `SHOMER_KEY_ALIAS` y `SHOMER_KEY_PASSWORD`. Sin ellos genera `app-release-unsigned.apk`.
 
-## Prueba experimental de captura
+## Filtro de imágenes en todo el teléfono (experimental)
 
-**La captura de pantalla sigue siendo un prototipo, no un filtro visual.** Solicita consentimiento de MediaProjection, inicia un servicio en primer plano y descarta los cuadros sin guardarlos ni enviarlos. No integra ONNX, no detecta personas y no dibuja máscaras.
+`CaptureService` refleja la pantalla en una pantalla virtual privada y pequeña (lado largo de 960 px) mediante MediaProjection. Analiza como mucho un cuadro cada 250 ms, y solo cuando la pantalla cambia. Encima de cualquier app dibuja recuadros grises opacos sobre las personas que hay que tapar. Los cuadros solo existen en memoria: no se guardan ni se envían.
+
+- **Modelos:** los mismos que Shomer Web, tomados directamente de `shomer-web/models` al compilar (no hay copias): `yolov8n-seg.onnx` para detectar personas y `gender.onnx` para estimar P(mujer). Se ejecutan con ONNX Runtime Android (`ScreenDetector`). Se usan los valores por defecto de `shomer-web/common/settings.js`: confianza de persona 0,25 y umbral de mujer 0,35 (si hay duda, se tapa). Se ignoran las personas de menos del 5 % de la altura. Si falta el modelo de género, se tapa a todas las personas.
+- **Pantallas altas:** el cuadro se divide en dos mosaicos solapados (`YoloDecoder.tiles`) para que las personas pequeñas de los feeds no se pierdan con el letterbox.
+- **Realimentación:** Shomer captura sus propios recuadros, así que en el cuadro siguiente ya no ve a la persona tapada. `CoverTracker` mantiene los recuadros mientras el resto de la pantalla no cambie. Para saberlo compara una rejilla de luminancia de 24×48 que ignora las celdas tapadas. Si cambia más del 22 % de lo visible (desplazamiento, otra app, otra foto), quita los recuadros y vuelve a analizar enseguida. Si una persona asoma por fuera de un recuadro, el recuadro crece.
+- **Superposición:** cada recuadro es una ventana `TYPE_APPLICATION_OVERLAY` independiente (`CoverOverlay`), no una ventana a pantalla completa. Desde Android 12, una superposición opaca de otra app bloquea los toques, y a pantalla completa dejaría el teléfono sin respuesta. Así solo se pierden los toques sobre la zona tapada.
+- **Permisos:** «Mostrar sobre otras apps» (`SYSTEM_ALERT_WINDOW`, la app abre el ajuste) y el consentimiento de captura en cada activación. En Android 14+ se pide la pantalla completa (`createConfigForDefaultDisplay`), porque la captura de una sola app descuadraría los recuadros.
+- El modelo se copia una vez a almacenamiento privado (`noBackupFilesDir/models`). Los `.onnx` van sin comprimir en el APK, que crece unos 60 MB por los modelos más ONNX Runtime (ARM y x86_64).
+
+Límites conocidos:
+
+- Hay latencia: algo nuevo puede verse una fracción de segundo antes de taparse, y al desplazarte los recuadros se recalculan. No hay mediciones reales de latencia ni de batería.
+- Se tapa la caja de la persona, no su silueta ni solo la piel como en la web (aún no hay modelo de piel).
+- El contenido protegido (DRM, `FLAG_SECURE`) aparece en negro para Shomer y no se filtra. No se intenta eludir esa protección.
+- Los recuadros usan coordenadas de pantalla completa. En algunos fabricantes, la barra de estado o los recortes pueden desplazarlos ligeramente.
+- Al girar la pantalla se borran los recuadros y se vuelve a analizar.
+
+La lógica pura (decodificación YOLO, NMS, letterbox, mosaicos y seguimiento de recuadros) tiene pruebas JUnit en `ScreenFilterTest.java`.
 
 ## Compilación
 
 Con JDK 17, Gradle 8.9 y Android SDK 35 instalados, desde `shomer-android`:
 
 ```sh
-gradle :app:assembleDebug
+gradle :app:testDebugUnitTest :app:assembleDebug
 ```
 
-El resultado esperado es `app/build/outputs/apk/debug/app-debug.apk`, firmado solo con la clave de depuración local. No distribuirlo como producto terminado. Se necesita un SDK/Gradle funcional y una prueba física antes de afirmar que existe un APK verificado.
-
-El workflow **Android prototype APK** también intenta construir este APK de depuración y un APK release sin firmar, con sus SHA-256, como artefactos de GitHub Actions. Acceder a los artefactos requiere los permisos de GitHub correspondientes. El APK sin firmar no se puede instalar hasta que un desarrollador lo firme. El APK de depuración es experimental y usa una clave generada en el runner: no es una versión release, no tiene identidad de firma estable y no puede actualizar de forma fiable instalaciones de otras compilaciones. Su disponibilidad no demuestra que se haya instalado o probado en un teléfono. El prototipo no contiene filtro visual.
-
-## Estado y límites
-
-- La interfaz muestra inicio, espera del primer cuadro, recepción, parada y errores; no demuestra que el contenido capturado sea visible o no esté protegido. El estado vive en el proceso, no es un registro persistente.
-- La captura requiere una nueva autorización después de detenerse o ser revocada. Se detiene desde la app o la acción de la notificación. En Android 13+ se puede solicitar el permiso de notificaciones; si está denegado o el canal bloqueado, la acción puede no aparecer en el panel. El servicio sigue siendo de primer plano y debe ser visible en los controles del sistema correspondientes.
-- En Android 14+ se utiliza el cambio de tamaño notificado por MediaProjection para redimensionar la misma pantalla virtual y reemplazar su superficie, sin reutilizar el consentimiento para crear otra pantalla virtual. En versiones anteriores se observa la pantalla principal para cambios de tamaño/orientación. El comportamiento de captura de una sola app, rotación y revocación aún necesita pruebas reales en cada versión.
-- Android puede bloquear o ennegrecer contenido protegido; no se intenta eludir esa protección. No se puede deducir protección a partir de un cuadro negro.
-- No existe superposición: permisos, coordenadas, sincronización y realimentación de una futura máscara sobre la captura siguen sin resolver. No hay mediciones de latencia ni de rendimiento.
-
-## Integración pendiente con la web
-
-`shomer-web/engine/yolo-seg.js` usa `yolov8n-seg.onnx` con entrada RGB CHW, letterbox gris, detección de personas, NMS y prototipos de máscara. El worker combina esa máscara con clasificación de género y segmentación/regla de piel; el modelo de piel no está incluido actualmente en `shomer-web/models`. Falta portar y verificar ese procesamiento con ONNX Runtime Android, gestionar formatos/stride de ImageReader y contrastar las salidas con la web. No se han copiado modelos ni añadido dependencias de inferencia al prototipo.
+El resultado esperado es `app/build/outputs/apk/debug/app-debug.apk`, firmado solo con la clave de depuración local. No distribuirlo como producto terminado. El workflow **Android prototype APK** ejecuta las pruebas y genera el APK de depuración y uno release (firmado solo si existen los secretos), con sus SHA-256, como artefactos de GitHub Actions. Que esté disponible no demuestra que se haya probado en un teléfono.
 
 ## Validación física pendiente
 
-En dispositivos con al menos una versión anterior a Android 14 y otra Android 14 o superior, registrar modelo, versión, tipo de captura y resultados sin inventar métricas:
+Nada de lo siguiente se ha probado todavía en un teléfono real. En dispositivos con Android anterior a 14 y con Android 14 o superior, registra modelo, versión y resultados sin inventar métricas:
 
-1. Denegar/cancelar consentimiento y confirmar que no comienza la captura; autorizar y verificar notificación y recepción de cuadros.
-2. Detener desde la app y desde la notificación; reiniciar y confirmar que se solicita consentimiento nuevo.
-3. Rotar en ambos sentidos, cambiar de app y, en Android 14+, probar captura de una sola app y su cambio de tamaño. Comprobar que la captura continúa o que la app informa un error, sin asumir que una máscara cubre nada.
-4. Revocar/detener la proyección desde el sistema y comprobar limpieza, estado y nueva autorización. Repetir con notificaciones denegadas y con el canal bloqueado.
-5. Probar contenido protegido sin intentar eludir la protección y confirmar que no se guardan ni transmiten cuadros. Tras integrar la inferencia y la superposición, verificar además alineación y realimentación, y medir latencias reales por dispositivo.
-
-Ninguna de estas pruebas físicas se ha ejecutado. Pausa/reanudación no están implementadas; detener y reiniciar crea una sesión nueva.
+1. Conceder y denegar «Mostrar sobre otras apps» y la captura. Comprobar que sin permisos no arranca y que la app lo explica.
+2. Abrir fotos y feeds (galería, Instagram, navegador) con hombres y mujeres. Comprobar que los recuadros caen sobre las personas, cuánto tardan y si se desalinean con la barra de estado o en horizontal.
+3. Desplazarse despacio y rápido. Comprobar que los recuadros se recalculan y que no queda ninguno huérfano ni parpadea en bucle.
+4. Tocar y desplazarse fuera y encima de los recuadros en Android 11 y en Android 12+.
+5. Girar la pantalla, detener desde la notificación, revocar la captura desde el sistema y comprobar la limpieza (sin recuadros residuales).
+6. Medir el consumo de batería y la temperatura durante 30 minutos de uso, y el tiempo de carga del modelo.
