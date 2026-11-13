@@ -91,7 +91,7 @@ public class DnsFilterTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(id >> 8); out.write(id); out.write(0x01); out.write(0x00);
         out.write(0); out.write(1); for (int i = 0; i < 6; i++) out.write(0);
-        for (String label : name.split("\.")) { out.write(label.length()); for (char c : label.toCharArray()) out.write(c); }
+        for (String label : name.split("\\.")) { out.write(label.length()); for (char c : label.toCharArray()) out.write(c); }
         out.write(0); out.write(0); out.write(1); out.write(0); out.write(1);
         return out.toByteArray();
     }

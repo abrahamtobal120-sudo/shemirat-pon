@@ -46,8 +46,15 @@ public class FilterVpnService extends VpnService {
 
     private static final String TUN_ADDRESS = "10.111.222.1";
     private static final String DNS_ADDRESS = "10.111.222.2";
-    /** CleanBrowsing Family (blocks adult content, enforces SafeSearch), then Cloudflare Families. */
-    private static final String[] UPSTREAM = {"185.228.168.168", "185.228.169.168", "1.1.1.3", "1.0.0.3"};
+    /**
+     * CleanBrowsing Family (blocks adult content, enforces SafeSearch), then Cloudflare Families as a
+     * fallback. Both servers of a group are asked at once and the first good answer wins, so one slow
+     * server no longer delays the page.
+     */
+    private static final String[][] UPSTREAM = {{"185.228.168.168", "185.228.169.168"}, {"1.1.1.3", "1.0.0.3"}};
+    private static final int UPSTREAM_TIMEOUT_MS = 1500;
+    /** Shared by every lookup while the filter runs; repeated names are answered without the network. */
+    private static final DnsCache cache = new DnsCache(2000);
     /** Common browsers, added in browser-only mode even if the system does not list them. */
     private static final String[] KNOWN_BROWSERS = {
         "com.android.chrome", "com.chrome.beta", "org.mozilla.firefox", "org.mozilla.firefox_beta",
@@ -74,6 +81,22 @@ public class FilterVpnService extends VpnService {
 
     static SharedPreferences prefs(Context context) { return context.getSharedPreferences(PREFS, MODE_PRIVATE); }
 
+    /**
+     * Restarts the filter with the saved mode if the user left it on and Android still holds the
+     * VPN authorization. Used after boot, after an app update and when the app is opened, so the
+     * filter comes back by itself without tapping anything. Returns true if a start was requested.
+     */
+    static boolean resumeIfEnabled(Context context) {
+        if (running || !prefs(context).getBoolean(PREF_ENABLED, false)) return false;
+        try {
+            if (VpnService.prepare(context) != null) return false; // needs the user's consent again
+            context.startService(new Intent(context, FilterVpnService.class).setAction(ACTION_START));
+            return true;
+        } catch (RuntimeException notAllowed) {
+            return false;
+        }
+    }
+
     @Override public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
             prefs(this).edit().putBoolean(PREF_ENABLED, false).apply();
@@ -94,6 +117,7 @@ public class FilterVpnService extends VpnService {
     private synchronized void start(String scope) {
         try {
             if (filter == null) filter = new DnsFilter(loadBlocklist());
+            cache.clear();
             Builder builder = new Builder()
                 .setSession("Shomer")
                 .addAddress(TUN_ADDRESS, 32)
@@ -163,6 +187,11 @@ public class FilterVpnService extends VpnService {
                 }
                 continue;
             }
+            byte[] cached = cache.get(query.payload());
+            if (cached != null) {
+                write(out, DnsFilter.reply(query, cached));
+                continue;
+            }
             try {
                 pool.execute(() -> forward(query, out));
             } catch (RejectedExecutionException stopping) {
@@ -175,18 +204,29 @@ public class FilterVpnService extends VpnService {
         byte[] payload = query.payload();
         try (DatagramSocket socket = new DatagramSocket()) {
             if (!protect(socket)) return;
-            socket.setSoTimeout(2500);
             byte[] response = new byte[4096];
-            for (String host : UPSTREAM) {
-                try {
+            for (String[] group : UPSTREAM) {
+                for (String host : group) {
                     socket.send(new DatagramPacket(payload, payload.length, InetAddress.getByName(host), 53));
+                }
+                long deadline = System.currentTimeMillis() + UPSTREAM_TIMEOUT_MS;
+                while (true) {
+                    long left = deadline - System.currentTimeMillis();
+                    if (left <= 0) break;
+                    socket.setSoTimeout((int) left);
                     DatagramPacket packet = new DatagramPacket(response, response.length);
-                    socket.receive(packet);
-                    if (!DnsFilter.matches(payload, response, packet.getLength())) continue;
-                    write(out, DnsFilter.reply(query, Arrays.copyOf(response, packet.getLength())));
+                    try {
+                        socket.receive(packet);
+                    } catch (SocketTimeoutException tryNextGroup) {
+                        break;
+                    }
+                    int length = packet.getLength();
+                    if (!DnsFilter.matches(payload, response, length)) continue;
+                    if ((response[3] & 0x0F) == 2) continue; // SERVFAIL: wait for the other server
+                    byte[] answer = Arrays.copyOf(response, length);
+                    cache.put(payload, answer);
+                    write(out, DnsFilter.reply(query, answer));
                     return;
-                } catch (SocketTimeoutException tryNext) {
-                    // Try the next resolver.
                 }
             }
         } catch (IOException ignored) {
