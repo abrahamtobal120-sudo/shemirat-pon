@@ -59,6 +59,8 @@ h1 span{background:linear-gradient(90deg,#7fd0ff,#4fb3f0);-webkit-background-cli
 .tile:nth-child(6){background:linear-gradient(135deg,#e0dbf3,#b9b0e0)}
 .tile.covered{position:relative;background:repeating-linear-gradient(135deg,#1d4f74 0 8px,#235c86 8px 16px);display:grid;place-items:center}
 .tile.covered svg{width:28px;height:28px;color:#fff;opacity:.9}
+.photo{grid-column:1/-1;margin:0;border-radius:10px;overflow:hidden;aspect-ratio:16/10}
+.photo svg{display:block;width:100%;height:100%}
 .line{grid-column:1/-1;height:9px;border-radius:5px;background:#e9eff4}.line.short{width:60%}
 .mock-note{padding:0 20px 16px;font-size:12px;color:var(--muted)}
 .toast{position:absolute;right:16px;bottom:44px;display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 14px 36px #0f2a4033;font-size:13px;font-weight:600}
@@ -89,35 +91,41 @@ h1 span{background:linear-gradient(90deg,#7fd0ff,#4fb3f0);-webkit-background-cli
 .status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
 .ok{color:var(--green);background:var(--green-bg)}.wait{color:var(--amber);background:var(--amber-bg)}
 
-/* Installer */
-.installer{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);display:grid;grid-template-columns:340px 1fr;overflow:hidden}
-.controls{background:linear-gradient(180deg,#f3f8fc,#eef4f9);padding:32px;border-right:1px solid var(--line)}
-.detected{display:flex;gap:10px;font-size:13.5px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
-label{display:block;font-weight:650;font-size:14px;margin:20px 0 7px}
-select{width:100%;appearance:none;-webkit-appearance:none;padding:12px 40px 12px 14px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a7184' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 15px center;color:var(--ink);border:1px solid #cddbe6;border-radius:10px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
-select:hover{border-color:#9fbdd3}select:focus{border-color:var(--blue);box-shadow:0 0 0 4px #1d6fa822;outline:none}
-.result{padding:36px 40px}
-.result h3{font-size:24px}
-#guide-note{color:var(--muted);margin-bottom:22px}
-#guide-steps{list-style:none;counter-reset:s;padding:0;margin:0 0 8px}
-#guide-steps li{counter-increment:s;position:relative;padding:4px 0 18px 50px}
-#guide-steps li::before{content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:#e8f2fa;color:var(--blue);font-weight:750;font-size:14px}
-#guide-steps li:not(:last-child)::after{content:"";position:absolute;left:15.5px;top:36px;bottom:2px;width:1px;background:var(--line)}
-#guide-link a{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;border-radius:12px;padding:13px 22px;text-decoration:none;font-weight:650;box-shadow:0 6px 18px #1d6fa840;transition:background .15s}
-#guide-link a:hover{background:var(--blue-d)}
-#guide-link a[href^="#"]{background:transparent;color:var(--blue);box-shadow:none;padding:0;border-radius:0}
-#guide-link a[href^="#"]:hover{text-decoration:underline}
+/* Downloads */
+.dl-card .button{margin-top:auto;align-self:flex-start}
+.dl-card .button.off{background:#eef3f7;color:var(--muted)!important;box-shadow:none;pointer-events:none}
+.dl-card .small-print{font-size:13px;color:var(--muted);margin:12px 0 0}
+.test{color:#6e4208;background:var(--amber-bg)}
+
+/* Install guide */
+.guide{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+.tablist{display:flex;gap:6px;padding:10px;background:#eef4f9;border-bottom:1px solid var(--line)}
+.tablist button{flex:1;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:14px;padding:14px 10px;background:transparent;color:var(--muted);font-weight:700;font-size:15.5px;cursor:pointer;transition:background .15s,color .15s}
+.tablist button:hover{color:var(--ink)}
+.tablist button[aria-selected=true]{background:#fff;color:var(--blue);box-shadow:0 2px 8px #0f2a401a}
+.panel{padding:36px 40px 40px}
+.panel>p.lead2{color:var(--muted);font-size:16.5px;max-width:720px}
+.detected{font-size:13.5px;color:var(--muted);text-align:center;margin:14px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 26px;align-items:center}
+.chips span{font-weight:650;font-size:14.5px;margin-right:4px}
+.chips button{border:1px solid #cddbe6;background:#fff;border-radius:99px;padding:7px 16px;font-weight:650;font-size:14px;color:var(--ink);cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#fff}
+.steps{list-style:none;counter-reset:s;padding:0;margin:0;display:grid;gap:14px}
+.steps>li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;gap:16px;align-items:start;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.steps>li::before{content:counter(s);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;font-size:18px}
+.steps strong{display:block;font-size:17px;margin:2px 0 4px}
+.steps p{color:var(--muted);margin:0;font-size:15px}
+.steps .button{margin-top:12px}
+.copy{display:inline-flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.copy code{font-size:15px;padding:7px 12px;background:#fff;border:1px solid #cddbe6}
+.copy button{border:0;background:#e8f2fa;color:var(--blue);font-weight:700;border-radius:8px;padding:8px 12px;cursor:pointer}
+kbd{font:inherit;font-weight:700;color:var(--ink);background:#fff;border:1px solid #cddbe6;border-bottom-width:2px;border-radius:6px;padding:1px 7px;white-space:nowrap}
+.box{display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:16px 18px;margin-top:22px;font-size:15px}
+.box.tip{background:#e8f2fa;color:#164a70}
+.box.warn2{background:var(--amber-bg);color:#6e4208;border:1px solid #f3dcb2}
+.box p{margin:4px 0 0}
+.done{margin-top:22px;font-weight:650;color:var(--green)}
 noscript p{background:var(--amber-bg);padding:14px 18px;border-radius:12px}
-
-/* Prototypes */
-.warn{display:flex;gap:12px;align-items:flex-start;background:var(--amber-bg);color:#6e4208;border:1px solid #f3dcb2;border-radius:14px;padding:14px 18px;margin-bottom:24px;font-size:15px}
-.meta{display:grid;gap:6px;font-size:13.5px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:4px 0 16px}
-code{overflow-wrap:anywhere;font-size:12.5px;background:#e8eef3;padding:2px 6px;border-radius:5px;color:var(--ink)}
-
-/* Mobile guides */
-.guide-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow)}
-.guide-card h3{font-size:22px;margin:14px 0 10px}
-.guide-card .intro{font-size:15.5px}
 
 /* FAQ */
 details{border-top:1px solid var(--line);padding:4px 0}
@@ -137,10 +145,10 @@ footer{margin-top:80px;border-top:1px solid var(--line);padding:30px 0;color:var
 footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 footer a{color:var(--muted);text-decoration:none;margin-left:20px}footer a:hover{color:var(--ink)}
 
-a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #e19a4a;outline-offset:3px;border-radius:6px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e19a4a;outline-offset:3px;border-radius:6px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.mock{transform:none}}
-@media(max-width:960px){.hero{grid-template-columns:1fr;gap:56px;padding:72px 0 100px}.mock{transform:none;max-width:560px}.installer{grid-template-columns:1fr}.controls{border-right:0;border-bottom:1px solid var(--line)}.cards{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){.wrap{padding:0 20px}.navlinks a:not(.button){display:none}.strip,.cards,.cards.two{grid-template-columns:1fr}.section{padding:72px 0 0}.controls,.result{padding:24px}.cta{flex-direction:column;align-items:flex-start;padding:36px 28px}.faq{padding:8px 20px}footer a{margin:0 16px 0 0}}
+@media(max-width:960px){.hero{grid-template-columns:1fr;gap:56px;padding:72px 0 100px}.mock{transform:none;max-width:560px}.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.wrap{padding:0 20px}.navlinks a:not(.button){display:none}.strip,.cards,.cards.two{grid-template-columns:1fr}.section{padding:72px 0 0}.panel{padding:24px 18px 28px}.tablist button{font-size:14px;padding:12px 4px;flex-direction:column;gap:4px}.steps>li{grid-template-columns:36px 1fr;gap:12px;padding:16px}.steps>li::before{width:36px;height:36px;font-size:16px}.cta{flex-direction:column;align-items:flex-start;padding:36px 28px}.faq{padding:8px 20px}footer a{margin:0 16px 0 0}}
 </style>
 </head>
 <body>
@@ -156,24 +164,67 @@ a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #e1
 <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 11l6 6 6-6M5 20h14"/></symbol>
 </svg>
 
-<header><nav class="wrap" aria-label="Navegación principal"><a class="brand" href="/"><span class="mark" aria-hidden="true">ש</span>Shomer</a><div class="navlinks"><a href="#plataformas">Plataformas</a><a href="#privacidad">Privacidad</a><a href="#pruebas">Pruebas</a><a href="#ayuda">Ayuda</a><a class="button small" href="#asistente">Cómo instalar</a></div></nav></header>
+<header><nav class="wrap" aria-label="Navegación principal"><a class="brand" href="/"><span class="mark" aria-hidden="true">ש</span>Shomer</a><div class="navlinks"><a href="#descargas">Descargas</a><a href="#instalacion">Cómo instalar</a><a href="#privacidad">Privacidad</a><a href="#ayuda">Ayuda</a><a class="button small" href="#descargas">Descargar</a></div></nav></header>
 
 <div class="hero-bg"><div class="wrap">
 <section class="hero">
 <div>
 <span class="pill"><b>NUEVO</b> Shomer Web para Chrome, Edge y Brave</span>
 <h1>Elige lo que <span>quieres ver.</span></h1>
-<p class="lead">Shomer Web ayuda a cubrir imágenes y videos en el navegador de tu computadora. Elige los ajustes que mejor se adapten a ti.</p>
-<div class="actions"><a class="button light" href="#asistente">Encuentra tu guía →</a><a class="button ghost" href="#plataformas">Conoce las opciones</a></div>
-<p class="fine"><svg class="icon" style="width:16px;height:16px"><use href="#i-info"/></svg>La detección puede equivocarse: revisa siempre el resultado.</p>
+<p class="lead">Shomer cubre imágenes y videos en el navegador de tu computadora. Descárgalo e instálalo en unos minutos siguiendo la guía.</p>
+<div class="actions"><a class="button light" href="#descargas">Descargar gratis →</a><a class="button ghost" href="#instalacion">Ver cómo se instala</a></div>
+<p class="fine"><svg class="icon" style="width:16px;height:16px"><use href="#i-info"/></svg>Para computadora y Android. La detección automática puede equivocarse.</p>
 </div>
-<div class="mock" role="img" aria-label="Ilustración conceptual de un navegador con algunas imágenes cubiertas">
-<div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ejemplo.com</span><span class="ext">ש</span></div>
+<div class="mock" role="img" aria-label="Ilustración conceptual de un navegador mostrando el interior de un avión, con la azafata cubierta por el filtro">
+<div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">vuelos.ejemplo.com</span><span class="ext">ש</span></div>
 <div class="mock-body">
 <div class="line short"></div>
-<div class="tile"></div><div class="tile"></div><div class="tile covered"><svg><use href="#i-shield"/></svg></div>
-<div class="tile"></div><div class="tile covered"><svg><use href="#i-shield"/></svg></div><div class="tile"></div>
-<div class="line"></div>
+<figure class="photo">
+<svg viewBox="0 0 480 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+<defs>
+<filter id="fa-blur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter>
+<linearGradient id="fa-ceil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e8eef3"/></linearGradient>
+<linearGradient id="fa-seat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a6d9c"/><stop offset="1" stop-color="#244b70"/></linearGradient>
+</defs>
+<rect width="480" height="300" fill="#e3e9ee"/>
+<polygon points="0,0 480,0 300,95 180,95" fill="url(#fa-ceil)"/>
+<polygon points="0,0 180,95 180,150 0,300" fill="#dbe3ea"/>
+<polygon points="480,0 300,95 300,150 480,300" fill="#dbe3ea"/>
+<rect x="180" y="95" width="120" height="55" fill="#eef2f5"/>
+<rect x="226" y="104" width="28" height="40" rx="3" fill="#cfd8e0"/>
+<polygon points="180,150 300,150 480,300 0,300" fill="#b7c2cd"/>
+<polygon points="218,150 262,150 330,300 150,300" fill="#55697f"/>
+<polygon points="0,18 180,97 180,110 0,72" fill="#fbfcfd" stroke="#cdd6de"/>
+<polygon points="480,18 300,97 300,110 480,72" fill="#fbfcfd" stroke="#cdd6de"/>
+<g fill="#9fc4e2" stroke="#c3ced8" stroke-width="3">
+<ellipse cx="38" cy="118" rx="12" ry="18"/><ellipse cx="96" cy="124" rx="9" ry="14"/><ellipse cx="142" cy="128" rx="6" ry="10"/>
+<ellipse cx="442" cy="118" rx="12" ry="18"/><ellipse cx="384" cy="124" rx="9" ry="14"/><ellipse cx="338" cy="128" rx="6" ry="10"/>
+</g>
+<g fill="url(#fa-seat)">
+<rect x="150" y="136" width="34" height="30" rx="6"/><rect x="104" y="146" width="62" height="56" rx="10"/><rect x="14" y="168" width="128" height="132" rx="16"/>
+<rect x="296" y="136" width="34" height="30" rx="6"/><rect x="314" y="146" width="62" height="56" rx="10"/><rect x="338" y="168" width="128" height="132" rx="16"/>
+</g>
+<g fill="#e9eff4" opacity=".9">
+<rect x="154" y="138" width="26" height="7" rx="3"/><rect x="110" y="149" width="50" height="11" rx="5"/><rect x="26" y="173" width="104" height="22" rx="9"/>
+<rect x="300" y="138" width="26" height="7" rx="3"/><rect x="320" y="149" width="50" height="11" rx="5"/><rect x="350" y="173" width="104" height="22" rx="9"/>
+</g>
+<g filter="url(#fa-blur)">
+<rect x="206" y="196" width="68" height="62" rx="5" fill="#9aa7b4"/>
+<circle cx="240" cy="122" r="13" fill="#e4b896"/>
+<path d="M226 120 q14-22 28 0 q-2-16-14-16 q-12 0-14 16z" fill="#4a3426"/>
+<path d="M226 138 h28 l10 70 h-48z" fill="#1f3f63"/>
+<path d="M232 138 l8 14 l8-14" fill="#c8102e"/>
+<rect x="228" y="208" width="9" height="40" fill="#1f3f63"/><rect x="243" y="208" width="9" height="40" fill="#1f3f63"/>
+</g>
+<rect x="190" y="92" width="100" height="172" rx="14" fill="#1d4f74" opacity=".28"/>
+<g transform="translate(240 178)">
+<rect x="-58" y="-17" width="116" height="34" rx="17" fill="#ffffff" opacity=".95"/>
+<path d="M-40-9 l9-4 l9 4 v6 c0 6-4 10-9 12 c-5-2-9-6-9-12z" fill="#1d6fa8"/>
+<text x="-16" y="5" font-family="system-ui,sans-serif" font-size="12.5" font-weight="700" fill="#173e5c">Cubierto</text>
+</g>
+</svg>
+</figure>
+<div class="line"></div><div class="line short"></div>
 </div>
 <p class="mock-note">Ilustración conceptual, no una captura del producto.</p>
 <div class="toast"><i>✓</i>Contenido cubierto según tus ajustes</div>
@@ -188,22 +239,67 @@ a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #e1
 <div><span class="ico"><svg class="icon"><use href="#i-browser"/></svg></span><span><strong>Chrome, Edge y Brave</strong>Extensión para computadora.</span></div>
 </div>
 
-<section class="section" id="plataformas">
-<div class="head"><span class="eyebrow">Una opción para cada plataforma</span><h2>Qué está disponible hoy</h2><p class="intro">Cada sistema ofrece posibilidades diferentes. No anunciamos instalaciones móviles hasta que existan versiones probadas.</p></div>
+<section class="section" id="descargas">
+<div class="head"><span class="eyebrow">Descargas</span><h2>Descarga Shomer</h2><p class="intro">Elige tu dispositivo. Los botones descargan el archivo directamente; abajo tienes la guía paso a paso.</p></div>
 <div class="cards">
-<article class="card featured"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-browser"/></svg></span><span class="status ok">Disponible</span></div><h3>Shomer Web</h3><p>Extensión para computadora. Analiza imágenes y videos en el navegador y puede cubrir contenido según tus ajustes. Funciona dentro del navegador, no en otras aplicaciones.</p><a class="more" href="#asistente">Ver instalación →</a></article>
-<article class="card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status wait">En preparación</span></div><h3>Android</h3><p>La app filtra sitios para adultos y publicidad en <strong>todo el teléfono</strong> o <strong>solo en los navegadores</strong>, con un filtro DNS local. Falta publicar una versión firmada y probada en teléfonos reales.</p><a class="more" href="#guia-android">Ver estado de Android →</a></article>
-<article class="card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-apple"/></svg></span><span class="status wait">En preparación</span></div><h3>iPhone y iPad</h3><p>La app usa el filtro de sitios para adultos de Apple en <strong>Safari y las webs dentro de otras apps</strong>, y en modo «Todo el teléfono» bloquea las apps que elijas. No coloca máscaras sobre otras apps. Pendiente de firma y TestFlight.</p><a class="more" href="#guia-iphone">Ver estado de iPhone →</a></article>
+<article class="card featured dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-browser"/></svg></span><span class="status ok">Disponible</span></div><h3>Computadora</h3><p>Extensión para <strong>Chrome, Edge y Brave</strong> en Windows, Mac o Linux. Cubre imágenes y videos dentro del navegador.</p><a class="button" href="/downloads/shomer-web.zip" download><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar (ZIP)</a><p class="small-print"><a href="#instalacion" data-open-tab="pc">¿Cómo se instala? →</a></p></article>
+<article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status test">Versión de prueba</span></div><h3>Android</h3><p>Instalador APK de prueba (versión 0.1.0, 15&nbsp;KB). <strong>Esta versión todavía no filtra contenido</strong>: sirve para probar la instalación y el permiso de pantalla. La versión con filtro se publicará aquí mismo.</p><a class="button" href="/downloads/shomer-android-prueba.apk" download><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK</a><p class="small-print"><a href="#instalacion" data-open-tab="android">¿Cómo se instala? →</a></p></article>
+<article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-apple"/></svg></span><span class="status wait">Próximamente</span></div><h3>iPhone y iPad</h3><p>Apple no permite instalar apps desde una página web: la app llegará por <strong>TestFlight o App Store</strong>. Mientras tanto puedes activar el filtro que ya trae tu iPhone.</p><span class="button off">Aún no disponible</span><p class="small-print"><a href="#instalacion" data-open-tab="iphone">Qué hacer mientras tanto →</a></p></article>
 </div>
 </section>
 
-<section class="section" id="asistente">
-<div class="head center"><span class="eyebrow">Guía personalizada</span><h2>Instala Shomer en tu dispositivo</h2><p class="intro">Intentamos reconocer tu dispositivo y navegador. La detección es aproximada; puedes corregirla. La selección permanece en esta página y no se envía a nuestros servidores.</p></div>
-<noscript><p>Activa JavaScript para usar el asistente. También puedes consultar las <a href="#guia-android">guías móviles</a> o descargar <a href="/downloads/shomer-web.zip">Shomer Web para computadora</a>.</p></noscript>
-<div class="installer">
-<div class="controls"><p id="detected" class="detected">Preparando la detección…</p><label for="device">¿Qué dispositivo usas?</label><select id="device"><option value="unknown">No se pudo detectar</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="android">Android</option><option value="windows">Windows</option><option value="mac">Mac</option><option value="linux">Linux</option><option value="other">Otro</option></select><label for="browser">¿Qué navegador usas?</label><select id="browser"><option value="unknown">No se pudo detectar</option><option value="chrome">Chrome</option><option value="edge">Edge</option><option value="brave">Brave</option><option value="safari">Safari</option><option value="firefox">Firefox</option><option value="embedded">Navegador integrado en otra app</option><option value="other">Otro</option></select><label for="goal">¿Qué quieres hacer?</label><select id="goal"><option value="install">Instalar</option><option value="activate">Activar la protección</option><option value="help">Resolver un problema</option></select><label for="scope">¿Qué quieres proteger?</label><select id="scope"><option value="phone">Todo el dispositivo (app)</option><option value="browser">Solo el navegador (extensión)</option></select></div>
-<div class="result" aria-live="polite" aria-atomic="true"><h3 id="guide-title">Tu guía</h3><p id="guide-note"></p><ol id="guide-steps"></ol><p id="guide-link"></p></div>
+<section class="section" id="instalacion">
+<div class="head center"><span class="eyebrow">Guía de instalación</span><h2>Instálalo paso a paso</h2><p class="intro">Elige tu dispositivo y sigue los pasos en orden.</p></div>
+<div class="guide">
+<div class="tablist" role="tablist" aria-label="Dispositivo">
+<button role="tab" id="tab-pc" data-tab="pc" aria-controls="panel-pc" aria-selected="true"><svg class="icon"><use href="#i-browser"/></svg>Computadora</button>
+<button role="tab" id="tab-android" data-tab="android" aria-controls="panel-android" aria-selected="false"><svg class="icon"><use href="#i-android"/></svg>Android</button>
+<button role="tab" id="tab-iphone" data-tab="iphone" aria-controls="panel-iphone" aria-selected="false"><svg class="icon"><use href="#i-apple"/></svg>iPhone y iPad</button>
 </div>
+
+<div class="panel" role="tabpanel" id="panel-pc" aria-labelledby="tab-pc">
+<p class="lead2">Toma unos 3 minutos. Necesitas Chrome, Edge o Brave (Firefox y Safari no son compatibles por ahora).</p>
+<div class="chips" role="group" aria-label="Tu navegador"><span>Tu navegador:</span><button type="button" data-browser="chrome" aria-pressed="true">Chrome</button><button type="button" data-browser="edge" aria-pressed="false">Edge</button><button type="button" data-browser="brave" aria-pressed="false">Brave</button></div>
+<ol class="steps">
+<li><div><strong>Descarga el archivo</strong><p>Pulsa el botón. Se guarda <kbd>shomer-web.zip</kbd> en tu carpeta de Descargas.</p><a class="button small" href="/downloads/shomer-web.zip" download>Descargar Shomer Web (ZIP)</a></div></li>
+<li><div><strong>Descomprime el ZIP</strong><p>En Windows: clic derecho sobre el archivo › <kbd>Extraer todo</kbd> › <kbd>Extraer</kbd>. En Mac: doble clic. Aparece una carpeta llamada <kbd>shomer-web</kbd>.</p></div></li>
+<li><div><strong>Guarda la carpeta en un lugar fijo</strong><p>Por ejemplo en Documentos. No la borres después: el navegador la usa todo el tiempo.</p></div></li>
+<li><div><strong>Abre la página de extensiones</strong><p>Copia esta dirección, pégala en la barra de direcciones de tu navegador y pulsa Enter:</p><div class="copy"><code class="addr" id="addr-1">chrome://extensions</code><button type="button" data-copy="addr-1">Copiar</button></div></div></li>
+<li><div><strong>Activa el «Modo de desarrollador»</strong><p>Es un interruptor en la esquina superior derecha (en Edge está en el menú de la izquierda).</p></div></li>
+<li><div><strong>Pulsa «Cargar descomprimida»</strong><p>Aparece arriba a la izquierda. Elige la carpeta <kbd>shomer-web</kbd> del paso 3 y pulsa <kbd>Seleccionar carpeta</kbd>.</p></div></li>
+<li><div><strong>Fija Shomer en la barra</strong><p>Pulsa el ícono de pieza de rompecabezas 🧩 junto a la barra de direcciones y luego el alfiler junto a Shomer Web. Desde ese ícono ajustas el nivel del filtro.</p></div></li>
+</ol>
+<p class="done">✓ Listo. Shomer Web ya revisa las páginas que abras.</p>
+<div class="box tip"><svg class="icon"><use href="#i-info"/></svg><div><strong>¿Quieres quitarlo?</strong><p>Abre <span class="addr">chrome://extensions</span> y pulsa <kbd>Quitar</kbd> en Shomer Web.</p></div></div>
+</div>
+
+<div class="panel" role="tabpanel" id="panel-android" aria-labelledby="tab-android">
+<p class="lead2">Hazlo desde el propio teléfono Android. Android pide confirmar algunos pasos porque la app no viene de Google Play.</p>
+<div class="box warn2" style="margin:0 0 22px"><svg class="icon"><use href="#i-alert"/></svg><div><strong>Versión de prueba 0.1.0: todavía no filtra contenido.</strong><p>Solo sirve para probar la instalación. Cuando esté lista la versión con filtro, la descargas desde este mismo botón y la instalas igual.</p></div></div>
+<ol class="steps">
+<li><div><strong>Descarga el APK</strong><p>Pulsa el botón desde el teléfono. Si Chrome pregunta si quieres conservar el archivo, pulsa <kbd>Descargar de todas formas</kbd>.</p><a class="button small" href="/downloads/shomer-android-prueba.apk" download>Descargar APK de prueba</a></div></li>
+<li><div><strong>Abre el archivo</strong><p>Toca <kbd>Abrir</kbd> en el aviso de descarga, o búscalo en la app <kbd>Archivos</kbd> › <kbd>Descargas</kbd>.</p></div></li>
+<li><div><strong>Permite instalar desde esta fuente</strong><p>Si aparece «Por tu seguridad, tu teléfono no puede instalar apps desconocidas», toca <kbd>Configuración</kbd>, activa <kbd>Permitir de esta fuente</kbd> y vuelve atrás.</p></div></li>
+<li><div><strong>Pulsa «Instalar»</strong><p>Si Google Play Protect muestra un aviso, toca <kbd>Más detalles</kbd> › <kbd>Instalar de todas formas</kbd>.</p></div></li>
+<li><div><strong>Abre Shomer</strong><p>Toca <kbd>Abrir</kbd> y acepta el permiso para compartir la pantalla cuando lo pida.</p></div></li>
+</ol>
+<div class="box tip"><svg class="icon"><use href="#i-shield"/></svg><div><strong>Mientras tanto: filtra todo el teléfono sin instalar nada</strong><p>Abre <kbd>Ajustes</kbd> › <kbd>Conexiones</kbd> o <kbd>Red e Internet</kbd> › <kbd>DNS privado</kbd>, elige <kbd>Nombre del proveedor</kbd> y escribe:</p><div class="copy"><code id="dns-android">family-filter-dns.cleanbrowsing.org</code><button type="button" data-copy="dns-android">Copiar</button></div><p>Bloquea los sitios para adultos en todas las apps y activa la búsqueda segura.</p></div></div>
+</div>
+
+<div class="panel" role="tabpanel" id="panel-iphone" aria-labelledby="tab-iphone">
+<p class="lead2">La app de Shomer para iPhone y iPad todavía no está publicada. Apple solo permite instalarla desde TestFlight o App Store; cuando esté disponible, el enlace aparecerá aquí. No instales archivos IPA de otras páginas.</p>
+<h3 style="margin-top:8px">Mientras tanto: activa el filtro que ya trae tu iPhone</h3>
+<ol class="steps" style="margin-top:14px">
+<li><div><strong>Abre Ajustes › Tiempo en pantalla</strong><p>En algunos países se llama <kbd>Tiempo de uso</kbd>.</p></div></li>
+<li><div><strong>Entra a «Restricciones de contenido y privacidad»</strong><p>Activa el interruptor de arriba.</p></div></li>
+<li><div><strong>Toca «Restricciones de contenido» › «Contenido web»</strong></div></li>
+<li><div><strong>Elige «Limitar sitios web para adultos»</strong><p>Funciona en Safari y en las páginas web que se abren dentro de otras apps.</p></div></li>
+<li><div><strong>Pon un código para que no se pueda cambiar</strong><p>Vuelve a <kbd>Tiempo en pantalla</kbd> y toca <kbd>Usar código de Tiempo en pantalla</kbd>.</p></div></li>
+</ol>
+</div>
+</div>
+<p id="detected" class="detected"></p>
+<noscript><p>Activa JavaScript para cambiar de pestaña. También puedes descargar <a href="/downloads/shomer-web.zip">Shomer Web para computadora</a> o el <a href="/downloads/shomer-android-prueba.apk">APK de prueba para Android</a>.</p></noscript>
 </section>
 
 <section class="section" id="privacidad">
@@ -215,36 +311,19 @@ a:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #e1
 </div>
 </section>
 
-<section class="section">
-<div class="head"><span class="eyebrow">Móviles</span><h2>Estado de las apps móviles</h2></div>
-<div class="cards two">
-<div class="guide-card" id="guia-android"><span class="status wait">Versión final pendiente</span><h3>Android</h3><p class="intro">No hay un APK final firmado y probado. En <a href="#pruebas">descargas de prueba</a> puedes consultar el prototipo experimental. No instales archivos de sitios que afirmen distribuir Shomer en nuestro nombre. Cuando haya una versión validada, aquí aparecerán los pasos para instalarla.</p><details><summary>¿Qué diferencia hay entre «Todo el teléfono» y «Solo navegadores»?</summary><p>«Todo el teléfono» filtra los sitios para adultos y la publicidad en todas las apps. «Solo navegadores» aplica el mismo filtro únicamente a Chrome, Firefox, Samsung Internet y otros navegadores instalados. Para que no se pueda desactivar fácilmente, activa «VPN siempre activa» en los ajustes de Android.</p></details><details><summary>¿Qué permiso necesita la prueba de captura?</summary><p>Android pide tu consentimiento para compartir la pantalla. La captura se puede detener desde la notificación; el prototipo actual descarta los cuadros y aún no aplica el filtro. Las pantallas protegidas pueden no ser capturables.</p></details><details><summary>¿Puedo usar Shomer Web en mi teléfono?</summary><p>La descarga actual es una extensión para navegadores de computadora. No ofrecemos una instalación móvil de esa extensión.</p></details></div>
-<div class="guide-card" id="guia-iphone"><span class="status wait">Todavía no disponible</span><h3>iPhone y iPad</h3><p class="intro">Se prepara una extensión para Safari, separada de la app de bloqueo. No hay una invitación de TestFlight ni una app publicada en App Store. Cuando exista una distribución autorizada, encontrarás aquí el enlace oficial y los pasos correspondientes.</p><details><summary>¿Qué podrá hacer la app?</summary><p>En «Solo navegador» activa el filtro de sitios para adultos de Apple, que funciona en Safari, Chrome y las páginas web dentro de otras apps. En «Todo el teléfono» además bloquea las apps y categorías que elijas y el contenido explícito de música, podcasts y libros. No modifica imágenes dentro de otras apps; el proyecto aún necesita firma y pruebas reales.</p></details><details><summary>¿Debo instalar un archivo IPA desde una web?</summary><p>No ofrecemos ese tipo de descarga. La distribución prevista es a través de un canal autorizado de Apple.</p></details></div>
-</div>
-</section>
-
-<section class="section" id="pruebas">
-<div class="head"><span class="eyebrow">Descargas de prueba</span><h2>Prototipos en desarrollo</h2></div>
-<p class="warn"><svg class="icon"><use href="#i-alert"/></svg><span><strong>Estos proyectos no son productos terminados.</strong> No confíes en ellos para proteger contenido.</span></p>
-<div class="cards two">
-<article class="card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status wait">Prototipo experimental</span></div><h3>Android · Prueba de captura</h3><p>El APK solicita permiso para capturar la pantalla y descarta los cuadros. <strong>No filtra ni cubre contenido.</strong> No se ha probado en un teléfono. Su firma de depuración no es una firma de distribución estable; una versión posterior podría requerir desinstalarlo.</p><div class="meta"><span>Versión 0.1.0 · Android 8 o posterior según la configuración (sin comprobar) · 14 753 bytes</span><span>El archivo se descarga desde los artefactos de GitHub Actions y puede requerir una cuenta; los artefactos caducan.</span><span>SHA-256: <code>fc032bcc0320fe2011ab266312198749fdfe1e801c69d9f7c3c3ee4b2b8c9288</code></span></div><a class="more" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/actions/runs/43301623480">Abrir compilación de prueba en GitHub →</a></article>
-<article class="card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-apple"/></svg></span><span class="status wait">En preparación</span></div><h3>iPhone · Extensión para Safari</h3><p>Se está preparando un proyecto experimental. Todavía no hay un instalador firmado ni una distribución para iPhone. Un archivo sin firma no puede instalarse directamente en el teléfono.</p><a class="more" href="#guia-iphone">Ver estado de iPhone →</a></article>
-</div>
-</section>
-
 <section class="section" id="ayuda">
 <div class="head center"><span class="eyebrow">Preguntas frecuentes</span><h2>Antes de empezar</h2></div>
 <div class="faq">
 <details><summary>¿Shomer cubre todo el contenido?</summary><p>No. La detección puede omitir contenido o cubrir de más. Los videos protegidos y algunos formatos tienen limitaciones.</p></details>
 <details><summary>¿Qué computadoras son compatibles?</summary><p>El proyecto incluye una extensión para Chrome, Edge y Brave en computadora. No contamos todavía con una tabla de dispositivos y versiones comprobados.</p></details>
 <details><summary>¿Cómo detengo Shomer Web?</summary><p>Abre la página de extensiones de tu navegador y desactiva o elimina Shomer Web. También puedes revisar sus ajustes desde el botón de extensiones.</p></details>
-<details><summary>¿Por qué no hay descarga para mi teléfono?</summary><p>Las aplicaciones móviles aún necesitan compilación, firma y pruebas en dispositivos físicos. No hay un instalador móvil validado.</p></details>
+<details><summary>¿Qué hay para mi teléfono?</summary><p>Para Android hay un APK de prueba que todavía no filtra; la versión con filtro se publicará en la sección de descargas. Para iPhone, Apple solo permite instalar desde TestFlight o App Store, y la app aún no está publicada.</p></details>
 </div>
 </section>
 
-<section class="cta"><div><h2>¿Listo para probar Shomer Web?</h2><p>El asistente te muestra los pasos exactos para tu navegador.</p></div><a class="button light" href="#asistente">Empezar la instalación →</a></section>
+<section class="cta"><div><h2>¿Listo para probar Shomer Web?</h2><p>Descárgalo y sigue los 7 pasos de la guía.</p></div><a class="button light" href="#descargas">Ir a descargas →</a></section>
 </main>
-<footer><div class="wrap"><span>© Shomer · Herramientas para elegir lo que ves</span><span><a href="#plataformas">Plataformas</a><a href="#privacidad">Privacidad</a><a href="#ayuda">Ayuda</a></span></div></footer>
+<footer><div class="wrap"><span>© Shomer · Herramientas para elegir lo que ves</span><span><a href="#descargas">Descargas</a><a href="#instalacion">Instalación</a><a href="#ayuda">Ayuda</a></span></div></footer>
 <script src="/guide.js" defer></script>
 </body>
 </html>
