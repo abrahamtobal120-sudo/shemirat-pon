@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - feat/mobile-install-guides
+      - feat/filtro-todo-el-telefono
     paths:
       - 'shomer-android/**'
       - '.github/workflows/android-debug.yml'
@@ -34,8 +35,23 @@ jobs:
           gradle-version: '8.9'
       - name: Install Android SDK 35
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-      - name: Build debug prototype
+      - name: Run DNS filter unit tests
         working-directory: shomer-android
+        run: gradle :app:testDebugUnitTest
+      - name: Prepare release keystore (only if repository secrets exist)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SHOMER_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/shomer-release.jks"
+            echo "SHOMER_KEYSTORE=$RUNNER_TEMP/shomer-release.jks" >> "$GITHUB_ENV"
+          fi
+      - name: Build debug and release APKs
+        working-directory: shomer-android
+        env:
+          SHOMER_KEYSTORE_PASSWORD: ${{ secrets.SHOMER_KEYSTORE_PASSWORD }}
+          SHOMER_KEY_ALIAS: ${{ secrets.SHOMER_KEY_ALIAS }}
+          SHOMER_KEY_PASSWORD: ${{ secrets.SHOMER_KEY_PASSWORD }}
         run: gradle :app:assembleDebug :app:assembleRelease
       - name: Record APK checksum
         working-directory: shomer-android/app/build/outputs/apk/debug
@@ -49,13 +65,17 @@ jobs:
             shomer-android/app/build/outputs/apk/debug/app-debug.apk
             shomer-android/app/build/outputs/apk/debug/SHA256SUMS.txt
           if-no-files-found: error
-      - name: Record unsigned APK checksum
+      - name: Record release APK checksum
         working-directory: shomer-android/app/build/outputs/apk/release
-        run: sha256sum app-release-unsigned.apk > SHA256SUMS.txt
+        run: |
+          if [ -f app-release.apk ]; then
+            "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app-release.apk
+          fi
+          sha256sum app-release*.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: shomer-android-prototipo-sin-firmar
+          name: shomer-android-release
           path: |
-            shomer-android/app/build/outputs/apk/release/app-release-unsigned.apk
+            shomer-android/app/build/outputs/apk/release/*.apk
             shomer-android/app/build/outputs/apk/release/SHA256SUMS.txt
           if-no-files-found: error

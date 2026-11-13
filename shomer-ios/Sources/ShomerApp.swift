@@ -2,6 +2,32 @@ import SwiftUI
 import FamilyControls
 import ManagedSettings
 
+/// Where Shomer applies its restrictions.
+enum ProtectionScope: String, CaseIterable, Identifiable {
+    /// Adult-website filter in Safari and every app that shows web pages (WebKit).
+    case browsers
+    /// Browser filter plus blocked apps/categories and explicit media in Apple apps.
+    case wholePhone
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .browsers: return "Solo navegador"
+        case .wholePhone: return "Todo el teléfono"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .browsers:
+            return "Filtra sitios para adultos en Safari, Chrome y en las páginas web que se abren dentro de otras apps."
+        case .wholePhone:
+            return "Además del filtro web, bloquea las apps y categorías que elijas y el contenido explícito de música, podcasts y libros de Apple."
+        }
+    }
+}
+
 @main
 struct ShomerApp: App {
     var body: some Scene {
@@ -18,6 +44,8 @@ struct ProtectionView: View {
     @State private var persistenceMessage: String?
     @State private var authorizationStatus = AuthorizationCenter.shared.authorizationStatus
     @State private var showingPicker = false
+    @AppStorage("protectionScope") private var scopeValue = ProtectionScope.wholePhone.rawValue
+    @AppStorage("denyAppRemoval") private var denyAppRemoval = false
     @State private var message = "Elige apps, categorías o dominios y aplica el bloqueo cuando quieras."
     private let store = ManagedSettingsStore()
 
@@ -33,15 +61,29 @@ struct ProtectionView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section("¿Dónde quieres filtrar?") {
+                    Picker("Modo", selection: $scopeValue) {
+                        ForEach(ProtectionScope.allCases) { scope in
+                            Text(scope.title).tag(scope.rawValue)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    Text(scope.detail)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                    if scope == .wholePhone {
+                        Toggle("Impedir que se borren apps (protege Shomer)", isOn: $denyAppRemoval)
+                    }
+                }
                 Section("Protección del dispositivo") {
-                    Text("Shomer puede pedir al sistema que bloquee las apps, categorías y dominios seleccionados. No filtra imágenes dentro de otras apps.")
+                    Text("Shomer pide al sistema que aplique el filtro de sitios para adultos de Apple y, en modo «Todo el teléfono», que bloquee las apps, categorías y dominios elegidos. No analiza ni cubre imágenes dentro de otras apps.")
                     LabeledContent("Autorización", value: authorizationDescription)
                     LabeledContent("Selección guardada", value: selectionDescription)
 
                     Button("Autorizar acceso") {
                         Task { await requestAuthorization() }
                     }
-                    Button("Elegir aplicaciones") { showingPicker = true }
+                    Button(scope == .wholePhone ? "Elegir apps, categorías y sitios" : "Elegir sitios para bloquear") { showingPicker = true }
                         .disabled(authorizationStatus != .approved)
                     Button("Aplicar bloqueo") {
                         guard authorizationStatus == .approved else {
@@ -85,6 +127,10 @@ struct ProtectionView: View {
                 }
             }
         }
+    }
+
+    private var scope: ProtectionScope {
+        ProtectionScope(rawValue: scopeValue) ?? .wholePhone
     }
 
     private var authorizationDescription: String {
@@ -135,20 +181,23 @@ struct ProtectionView: View {
     }
 
     private func applySelection() {
-        let hasSelection = !selection.applicationTokens.isEmpty
-            || !selection.categoryTokens.isEmpty
-            || !selection.webDomainTokens.isEmpty
-
-        guard hasSelection else {
-            store.clearAllSettings()
-            message = "No hay elementos seleccionados; se quitaron las restricciones de Shomer."
-            return
-        }
-
-        store.shield.applications = selection.applicationTokens.isEmpty ? nil : selection.applicationTokens
-        store.shield.applicationCategories = selection.categoryTokens.isEmpty ? nil : .specific(selection.categoryTokens)
+        // Apple's adult-website filter: applies to Safari and every app that uses WebKit.
+        store.webContent.blockedByFilter = .auto()
         store.shield.webDomains = selection.webDomainTokens.isEmpty ? nil : selection.webDomainTokens
-        message = "Configuración enviada a ManagedSettings. Verifica el bloqueo en el dispositivo."
+
+        if scope == .wholePhone {
+            store.shield.applications = selection.applicationTokens.isEmpty ? nil : selection.applicationTokens
+            store.shield.applicationCategories = selection.categoryTokens.isEmpty ? nil : .specific(selection.categoryTokens)
+            store.media.denyExplicitContent = true
+            store.application.denyAppRemoval = denyAppRemoval ? true : nil
+            message = "Filtro web, apps elegidas y contenido explícito enviados al sistema. Comprueba el bloqueo en el dispositivo."
+        } else {
+            store.shield.applications = nil
+            store.shield.applicationCategories = nil
+            store.media.denyExplicitContent = nil
+            store.application.denyAppRemoval = nil
+            message = "Filtro de sitios para adultos enviado al sistema para Safari y las páginas web de otras apps. Compruébalo en el dispositivo."
+        }
     }
 }
 

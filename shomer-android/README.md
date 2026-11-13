@@ -1,6 +1,31 @@
 # Shomer Android
 
-**Prototipo de captura, no filtro visual ni aplicación lista para distribución.** La app solicita consentimiento de MediaProjection, inicia un servicio en primer plano y descarta los cuadros sin guardarlos ni enviarlos. No integra ONNX, no detecta personas y no dibuja máscaras. No hay protección visual ni garantía de cubrir contenido antes de que aparezca. No se ha compilado un APK ni validado en un dispositivo físico en este entorno.
+## Filtro de todo el teléfono o solo navegadores
+
+La app incluye un filtro DNS local (`FilterVpnService`, basado en `VpnService` de Android):
+
+- **Todo el teléfono:** todas las apps (excepto Shomer) resuelven nombres a través de Shomer.
+- **Solo navegadores:** el filtro se aplica únicamente a los navegadores instalados (Chrome, Firefox, Samsung Internet, Edge, Opera, Brave, DuckDuckGo…), detectados con `queryIntentActivities` más una lista de paquetes conocidos.
+
+Los dominios de `app/src/main/assets/blocklist.txt` (publicidad de `shomer-web/rules/ad_rules.json` y sitios para adultos), sus subdominios y los nombres que contienen palabras clave como `porn` o `xxx` reciben NXDOMAIN. El resto se reenvía a **CleanBrowsing Family** (`185.228.168.168`, `185.228.169.168`), que también bloquea contenido para adultos y fuerza la búsqueda segura de Google, Bing y YouTube; si no responde se usa **Cloudflare for Families** (`1.1.1.3`, `1.0.0.3`). Solo pasan por la VPN las consultas DNS; el resto del tráfico va directo y no se guarda historial. La app muestra cuántas consultas revisó y bloqueó.
+
+Para que no se pueda saltar fácilmente: Ajustes › Red › VPN › Shomer › **VPN siempre activa** y **Bloquear conexiones sin VPN** (botón «Hacerlo permanente» en la app). Límites conocidos: solo una VPN a la vez; un «DNS privado» con nombre de proveedor o apps con DNS cifrado propio (DoH) pueden saltarse el filtro; no analiza imágenes dentro de las apps (eso sigue siendo la prueba experimental de captura descrita abajo).
+
+La lógica de paquetes DNS está en `DnsFilter.java` y tiene pruebas JUnit (`gradle :app:testDebugUnitTest`).
+
+## Firma del APK de distribución
+
+`assembleRelease` firma el APK si existen estas variables de entorno: `SHOMER_KEYSTORE` (ruta del .jks), `SHOMER_KEYSTORE_PASSWORD`, `SHOMER_KEY_ALIAS` y `SHOMER_KEY_PASSWORD`. Para crear la clave una sola vez (guárdala en un lugar seguro; sin ella no se pueden publicar actualizaciones):
+
+```sh
+keytool -genkeypair -v -keystore shomer-release.jks -alias shomer -keyalg RSA -keysize 4096 -validity 10000
+```
+
+En GitHub Actions, el workflow firma automáticamente si el repositorio tiene los secretos `SHOMER_KEYSTORE_BASE64` (el .jks en base64), `SHOMER_KEYSTORE_PASSWORD`, `SHOMER_KEY_ALIAS` y `SHOMER_KEY_PASSWORD`. Sin ellos genera `app-release-unsigned.apk`.
+
+## Prueba experimental de captura
+
+**La captura de pantalla sigue siendo un prototipo, no un filtro visual.** Solicita consentimiento de MediaProjection, inicia un servicio en primer plano y descarta los cuadros sin guardarlos ni enviarlos. No integra ONNX, no detecta personas y no dibuja máscaras.
 
 ## Compilación
 

@@ -41,3 +41,16 @@ test("guías de escritorio usan direcciones del navegador correcto", () => {
   assert.notEqual(guide("linux", "firefox", "install").link, "/downloads/shomer-web.zip");
   assert.equal(guide("unknown", "unknown", "install").steps.length, 0);
 });
+
+test("permite elegir todo el dispositivo o solo el navegador", () => {
+  const phone = guide("android", "chrome", "install", "phone");
+  const browser = guide("android", "chrome", "install", "browser");
+  assert.match(phone.title, /todo el teléfono/i);
+  assert.ok(phone.steps.some(step => step.includes("Todo el teléfono")));
+  assert.match(browser.title, /solo el navegador/i);
+  assert.ok(browser.steps.some(step => step.includes("Solo navegadores")));
+  assert.ok(guide("iphone", "safari", "install", "browser").steps.some(step => step.includes("Solo navegador")));
+  const desktopWhole = guide("windows", "chrome", "install", "phone");
+  assert.ok(desktopWhole.steps.some(step => step.includes("185.228.168.168")));
+  assert.equal(guide("windows", "chrome", "install", "browser").link, "/downloads/shomer-web.zip");
+});

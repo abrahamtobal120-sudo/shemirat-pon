@@ -1,6 +1,26 @@
 # Shomer iOS
 
-Aplicación nativa que usa FamilyControls para solicitar autorización individual y mostrar el selector del sistema. La selección de apps, categorías y dominios se guarda localmente; los errores de lectura/escritura se muestran en la interfaz, y una selección ilegible no se sobrescribe automáticamente. ManagedSettings recibe o retira las restricciones cuando se pulsan los botones correspondientes. El estado de autorización se vuelve a leer al regresar a primer plano. Shomer no filtra imágenes dentro de otras aplicaciones.
+App nativa con FamilyControls y ManagedSettings. Tiene dos modos (se recuerdan entre sesiones):
+
+- **Solo navegador:** activa el filtro de sitios para adultos de Apple (`store.webContent.blockedByFilter = .auto()`), que funciona en Safari, en los demás navegadores (todos usan WebKit en iOS) y en las páginas web que se abren dentro de otras apps. También bloquea los dominios que elijas.
+- **Todo el teléfono:** lo anterior, más el bloqueo de las apps y categorías elegidas (`shield`), el contenido explícito de música, podcasts y libros de Apple (`media.denyExplicitContent`) y, si se activa, impide borrar apps para proteger Shomer (`application.denyAppRemoval`).
+
+La selección se guarda localmente; los errores de lectura/escritura se muestran en la interfaz. Shomer no analiza ni cubre imágenes dentro de otras apps: iOS no lo permite.
+
+## Lista para firmar
+
+- `project.yml` ya incluye versión (0.2.0 / build 2), icono 1024×1024 (`Sources/Assets.xcassets`, regenerable con `python3 scripts/make_app_icon.py`), firma automática, `ITSAppUsesNonExemptEncryption = NO` y el entitlement `com.apple.developer.family-controls`.
+- Solo falta escribir tu **Team ID** en `DEVELOPMENT_TEAM` (o pasarlo a xcodebuild) y, si `dev.shomer.ios` no está disponible, cambiar `PRODUCT_BUNDLE_IDENTIFIER`.
+- **Requisito de Apple:** para TestFlight/App Store hay que pedir el entitlement *Family Controls (Distribution)* en https://developer.apple.com/contact/request/family-controls-distribution. En desarrollo funciona sin esa aprobación.
+- Archivar y subir a TestFlight desde una Mac:
+
+```sh
+cd shomer-ios && xcodegen generate
+xcodebuild -project Shomer.xcodeproj -scheme Shomer -configuration Release   -destination 'generic/platform=iOS' -archivePath build/Shomer.xcarchive   DEVELOPMENT_TEAM=TU_TEAM_ID -allowProvisioningUpdates archive
+xcodebuild -exportArchive -archivePath build/Shomer.xcarchive   -exportOptionsPlist ExportOptions.plist -exportPath build/export -allowProvisioningUpdates
+```
+
+El workflow **iOS app (Family Controls)** compila la app sin firma en macOS en cada cambio y publica `shomer-ios-sin-firmar.ipa` como artefacto (no se instala sin firmar).
 
 ## Generar y compilar
 
