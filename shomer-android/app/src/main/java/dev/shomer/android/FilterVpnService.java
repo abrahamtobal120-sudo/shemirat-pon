@@ -133,7 +133,7 @@ public class FilterVpnService extends VpnService {
             ParcelFileDescriptor descriptor = tun;
             loop = new Thread(() -> readLoop(descriptor), "ShomerDns");
             loop.start();
-        } catch (IOException | RuntimeException failure) {
+        } catch (IOException | PackageManager.NameNotFoundException | RuntimeException failure) {
             status = "No se pudo iniciar el filtro (" + failure.getClass().getSimpleName() + ").";
             shutdown(null);
             stopSelf();
