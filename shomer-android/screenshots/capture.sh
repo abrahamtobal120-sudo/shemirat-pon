@@ -36,7 +36,7 @@ adb root >/dev/null; sleep 3; adb wait-for-device
 adb shell setprop persist.sys.locale es-MX
 adb shell setprop ctl.restart zygote
 sleep 10; adb wait-for-device
-until [ "$(adb shell getprop sys.boot_completed | tr -d '')" = 1 ] && adb shell pm path android >/dev/null 2>&1; do sleep 2; done
+until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && adb shell pm path android >/dev/null 2>&1; do sleep 2; done
 sleep 15
 for i in $(seq 1 30); do adb shell touch /sdcard/Download/.ok 2>/dev/null && break; sleep 3; done
 adb shell settings put global sysui_demo_allowed 1
