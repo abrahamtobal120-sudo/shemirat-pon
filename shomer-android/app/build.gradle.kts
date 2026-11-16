@@ -11,8 +11,8 @@ android {
         applicationId = "dev.shomer.android"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "1.0.0"
         // Real phones (ARM) plus the 64-bit emulator; drops 32-bit x86 to keep the APK smaller.
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
     }

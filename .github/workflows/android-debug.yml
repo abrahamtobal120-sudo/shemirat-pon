@@ -1,4 +1,4 @@
-name: Android prototype APK
+name: Android APK
 
 on:
   workflow_dispatch:
@@ -68,7 +68,8 @@ jobs:
       - name: Record release APK checksum
         working-directory: shomer-android/app/build/outputs/apk/release
         run: |
-          if [ -f app-release.apk ]; then
+          if [ -n "$SHOMER_KEYSTORE" ]; then
+            test -f app-release.apk || { echo "Falta app-release.apk firmado"; exit 1; }
             "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs app-release.apk
           fi
           sha256sum app-release*.apk > SHA256SUMS.txt
