@@ -33,6 +33,7 @@ nav{height:68px;display:flex;align-items:center;justify-content:space-between;ga
 .button.light{background:#fff;color:var(--navy)!important;box-shadow:0 6px 20px #0006}.button.light:hover{background:#eaf4fb}
 .button.ghost{background:transparent;border-color:#ffffff40;color:#fff!important;box-shadow:none}.button.ghost:hover{background:#ffffff14}
 .button.small{padding:9px 16px;font-size:14px;border-radius:10px}
+.button.ghost-dark{background:transparent;border-color:#cddbe6;color:var(--blue)!important;box-shadow:none}.button.ghost-dark:hover{background:#e8f2fa}
 .navlinks .button{color:#fff}
 
 /* Hero */
@@ -46,25 +47,19 @@ h1 span{background:linear-gradient(90deg,#7fd0ff,#4fb3f0);-webkit-background-cli
 .actions{display:flex;flex-wrap:wrap;gap:12px}
 .hero .fine{color:#8ea9be;font-size:13.5px;margin-top:22px;display:flex;gap:8px;align-items:center}
 
-/* Hero mock */
-.mock{position:relative;border-radius:16px;background:#fff;color:var(--ink);box-shadow:0 30px 80px #0009,0 0 0 1px #ffffff1a;overflow:hidden;transform:perspective(1400px) rotateY(-6deg) rotateX(2deg)}
-.mock-bar{display:flex;align-items:center;gap:7px;padding:12px 14px;background:#f0f4f8;border-bottom:1px solid var(--line)}
+/* Hero: real screenshots */
+.hero-shots{position:relative;margin:0 0 0 auto;max-width:600px;padding:0 0 150px}
+.browser{border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 30px 80px #0009,0 0 0 1px #ffffff1a}
+.browser-bar{display:flex;align-items:center;gap:7px;padding:10px 12px;background:#eef2f6;border-bottom:1px solid var(--line)}
+.browser>img{display:block;width:100%;height:auto}
 .dot{width:10px;height:10px;border-radius:50%;background:#d5dee6}
-.url{flex:1;margin-left:10px;background:#fff;border:1px solid var(--line);border-radius:7px;font-size:12px;color:var(--muted);padding:4px 10px}
+.url{flex:1;margin-left:8px;background:#fff;border:1px solid var(--line);border-radius:7px;font-size:12px;color:var(--muted);padding:4px 10px}
 .ext{display:grid;place-items:center;width:24px;height:24px;border-radius:6px 6px 10px 10px;background:linear-gradient(160deg,#4fb3f0,#1d6fa8);color:#fff;font-size:12px}
-.mock-body{padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.tile{aspect-ratio:4/3;border-radius:10px;background:linear-gradient(135deg,#cfe6f5,#a9cde6)}
-.tile:nth-child(2){background:linear-gradient(135deg,#f6dcc4,#e7b98f)}
-.tile:nth-child(4){background:linear-gradient(135deg,#d6ecd9,#a6d0ad)}
-.tile:nth-child(6){background:linear-gradient(135deg,#e0dbf3,#b9b0e0)}
-.tile.covered{position:relative;background:repeating-linear-gradient(135deg,#1d4f74 0 8px,#235c86 8px 16px);display:grid;place-items:center}
-.tile.covered svg{width:28px;height:28px;color:#fff;opacity:.9}
-.photo{grid-column:1/-1;margin:0;border-radius:10px;overflow:hidden;aspect-ratio:16/10}
-.photo svg{display:block;width:100%;height:100%}
-.line{grid-column:1/-1;height:9px;border-radius:5px;background:#e9eff4}.line.short{width:60%}
-.mock-note{padding:0 20px 16px;font-size:12px;color:var(--muted)}
-.toast{position:absolute;right:16px;bottom:44px;display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 14px 36px #0f2a4033;font-size:13px;font-weight:600}
-.toast i{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--green-bg);color:var(--green);font-style:normal}
+.hero-shots .hero-phone{position:absolute;margin:0;left:-44px;bottom:0;width:31%;max-width:190px;padding:6px!important;border-radius:26px!important;box-shadow:0 30px 70px #000a,0 0 0 1px #ffffff26!important}
+.hero-shots .hero-phone img{border-radius:20px}
+.hero-shots figcaption{margin:16px 0 0 auto;font-size:12.5px;color:#8ea9be;max-width:62%;text-align:right}
+.real{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--green);background:var(--green-bg);border-radius:99px;padding:3px 10px;font-size:12px}
+.hero .real{background:#1f8a5b33;color:#7fe0b0}
 
 /* Trust strip */
 .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:-42px;position:relative;z-index:2}
@@ -97,35 +92,26 @@ h1 span{background:linear-gradient(90deg,#7fd0ff,#4fb3f0);-webkit-background-cli
 .dl-card .small-print{font-size:13px;color:var(--muted);margin:12px 0 0}
 .test{color:#6e4208;background:var(--amber-bg)}
 
-/* Screenshots */
-.shots{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start}
-.shot{text-align:center}
-.phone{position:relative;margin:0 auto;width:100%;max-width:280px;aspect-ratio:9/19.5;border-radius:34px;background:#0b2236;padding:11px;box-shadow:0 24px 60px #0f2a4026,0 0 0 1px #0f2a4014}
-.phone::before{content:"";position:absolute;top:16px;left:50%;transform:translateX(-50%);width:84px;height:7px;border-radius:4px;background:#2b4258;z-index:3}
-.screen{height:100%;border-radius:24px;overflow:hidden;background:#f3f6f9;display:flex;flex-direction:column;text-align:left}
-.sbar{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 4px;font-size:11px;color:#5a7184;font-weight:600}
-.app{padding:16px 16px 18px;overflow:hidden;flex:1}
-.app .t{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
-.app .sub{font-size:11px;color:var(--muted);margin:5px 0 12px;line-height:1.45}
-.app .q{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px}
-.radio{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--ink);padding:7px 0}
-.radio i{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid #b7c6d3;margin-top:1px}
-.radio.on i{border-color:var(--blue);box-shadow:inset 0 0 0 3px var(--blue)}
-.radio.on{font-weight:700}
-.bbtn{display:block;text-align:center;border-radius:10px;padding:10px;font-size:12.5px;font-weight:700;margin-top:12px}
-.bbtn.pri{background:var(--blue);color:#fff}
-.bbtn.sec{background:#e8f2fa;color:var(--blue)}
-.sstat{margin-top:12px;background:var(--green-bg);color:#145c3b;border-radius:10px;padding:9px 12px;font-size:11.5px;font-weight:650;display:flex;gap:7px;align-items:center}
-.sstat i{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;font-style:normal;font-size:12px;flex:none}
-.feed{flex:1;background:#dde6ee;position:relative;overflow:hidden}
-.feed .pic{position:absolute;inset:0;background:linear-gradient(135deg,#cbe0ef,#9fc0da)}
-.feed .cover{position:absolute;border-radius:4px;background:repeating-linear-gradient(135deg,#334a5f 0 7px,#3d566d 7px 14px);display:grid;place-items:center}
-.feed .cover svg{width:22px;height:22px;color:#fff;opacity:.85}
-.feed .ov{position:absolute;left:12px;right:12px;bottom:12px;background:#0b2236d9;color:#fff;border-radius:10px;padding:8px 11px;font-size:11px;font-weight:600;display:flex;gap:7px;align-items:center}
-.feed .ov i{color:#7fd0ff;font-style:normal}
-.shot figcaption{color:var(--muted);font-size:13.5px;margin-top:14px}
-.shot b{color:var(--ink)}
-@media(max-width:700px){.shots{grid-template-columns:1fr;gap:34px}}
+/* Screenshots (real) */
+.shots{display:grid;grid-template-columns:repeat(4,1fr);gap:26px 22px;align-items:start}
+.shot{margin:0;text-align:center}
+.phone{position:relative;margin:0 auto;width:100%;max-width:250px;border-radius:30px;background:#0b2236;padding:8px;box-shadow:0 24px 60px #0f2a4026,0 0 0 1px #0f2a4014}
+.phone img{display:block;width:100%;height:auto;border-radius:23px;background:#f3f6f9}
+.shot figcaption{color:var(--muted);font-size:13.5px;margin-top:14px;line-height:1.5}
+.shot b{color:var(--ink);display:block}
+.shots-note{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:28px;font-size:13.5px;color:var(--muted);text-align:center}
+@media(max-width:960px){.shots{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.shots{gap:24px 12px}.shot figcaption{font-size:12.5px}}
+/* Computer section */
+.split{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
+.checks{list-style:none;padding:0;margin:18px 0 26px;display:grid;gap:12px}
+.checks li{display:flex;gap:12px;align-items:flex-start;color:var(--muted)}
+.checks li::before{content:"\2713";flex:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--green-bg);color:var(--green);font-weight:800;font-size:13px;margin-top:1px}
+.checks strong{color:var(--ink)}
+.popup-shot{margin:0;text-align:center}
+.popup-shot img{width:100%;max-width:330px;height:auto;border-radius:14px;border:1px solid var(--line);box-shadow:0 30px 70px #0f2a4029}
+.popup-shot figcaption{font-size:13px;color:var(--muted);margin-top:12px}
+@media(max-width:860px){.split{grid-template-columns:1fr;gap:36px}}
 /* Install guide */
 .guide{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
 .picker{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:14px;background:#eef4f9;border-bottom:1px solid var(--line)}
@@ -148,6 +134,14 @@ h1 span{background:linear-gradient(90deg,#7fd0ff,#4fb3f0);-webkit-background-cli
 .steps strong{display:block;font-size:17px;margin:2px 0 4px}
 .steps p{color:var(--muted);margin:0;font-size:15px}
 .steps .button{margin-top:12px}
+.step-shot{display:block;margin-top:14px;max-width:100%;height:auto;border:1px solid #d5e1ea;border-radius:10px;background:#fff;box-shadow:0 6px 18px #0f2a4012}
+.step-phones{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;align-items:flex-start}
+.step-phones figure{margin:0;width:170px;text-align:center}
+.step-phones img{display:block;width:100%;height:auto;border-radius:16px;border:5px solid #0b2236;box-shadow:0 10px 24px #0f2a4024}
+.step-phones .flat img{border:1px solid #d5e1ea;border-radius:12px}
+.step-phones figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;line-height:1.4}
+.shot-label{display:block;font-size:12.5px;color:var(--muted);margin-top:6px}
+@media(max-width:520px){.step-phones figure{width:calc(50% - 7px)}}
 .copy{display:inline-flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
 .copy code{font-size:15px;padding:7px 12px;background:#fff;border:1px solid #cddbe6}
 .copy button{border:0;background:#e8f2fa;color:var(--blue);font-weight:700;border-radius:8px;padding:8px 12px;cursor:pointer}
@@ -178,8 +172,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 footer a{color:var(--muted);text-decoration:none;margin-left:20px}footer a:hover{color:var(--ink)}
 
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e19a4a;outline-offset:3px;border-radius:6px}
-@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.mock{transform:none}}
-@media(max-width:960px){.picker{grid-template-columns:repeat(4,1fr)}.hero{grid-template-columns:1fr;gap:56px;padding:72px 0 100px}.mock{transform:none;max-width:560px}.cards{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.card{transform:none}}
+@media(max-width:960px){.picker{grid-template-columns:repeat(4,1fr)}.hero{grid-template-columns:1fr;gap:56px;padding:72px 0 100px}.hero-shots{margin:0 auto;max-width:560px}.hero-shots .hero-phone{left:-6px}.cards{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){kbd{white-space:normal}.wrap{padding:0 20px}.navlinks a:not(.button){display:none}.strip,.cards,.cards.two{grid-template-columns:1fr}.section{padding:72px 0 0}.panel{padding:24px 18px 28px}.picker{grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}.picker button{font-size:13.5px;padding:12px 4px}.picker button .icon{width:26px;height:26px}.steps>li{grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px}.steps>li::before{width:36px;height:36px;font-size:16px}.cta{flex-direction:column;align-items:flex-start;padding:36px 28px}.faq{padding:8px 20px}footer a{margin:0 16px 0 0}}
 </style>
 </head>
@@ -201,7 +195,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <symbol id="i-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12 15h5"/></symbol>
 </svg>
 
-<header><nav class="wrap" aria-label="Navegación principal"><a class="brand" href="/"><span class="mark" aria-hidden="true">ש</span>Shomer</a><div class="navlinks"><a href="#descargas">Descargas</a><a href="#app">La app</a><a href="#instalacion">Guía de instalación</a><a href="#privacidad">Privacidad</a><a href="#ayuda">Ayuda</a><a class="button small" href="#descargas">Descargar</a></div></nav></header>
+<header><nav class="wrap" aria-label="Navegación principal"><a class="brand" href="/"><span class="mark" aria-hidden="true">ש</span>Shomer</a><div class="navlinks"><a href="#descargas">Descargas</a><a href="#app">La app</a><a href="#computadora">Computadora</a><a href="#instalacion">Guía de instalación</a><a href="#privacidad">Privacidad</a><a href="#ayuda">Ayuda</a><a class="button small" href="#descargas">Descargar</a></div></nav></header>
 
 <div class="hero-bg"><div class="wrap">
 <section class="hero">
@@ -212,60 +206,13 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <div class="actions"><a class="button light" href="#descargas">Descargar gratis →</a><a class="button ghost" href="#instalacion">Ver cómo se instala</a></div>
 <p class="fine"><svg class="icon" style="width:16px;height:16px"><use href="#i-info"/></svg>Gratis para Android y computadora. Ningún filtro es perfecto: la detección puede equivocarse.</p>
 </div>
-<div class="mock" role="img" aria-label="Ilustración conceptual de un navegador mostrando el interior de un avión, con la azafata cubierta por el filtro">
-<div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">vuelos.ejemplo.com</span><span class="ext">ש</span></div>
-<div class="mock-body">
-<div class="line short"></div>
-<figure class="photo">
-<svg viewBox="0 0 480 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-<defs>
-<filter id="fa-blur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter>
-<linearGradient id="fa-ceil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e8eef3"/></linearGradient>
-<linearGradient id="fa-seat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a6d9c"/><stop offset="1" stop-color="#244b70"/></linearGradient>
-</defs>
-<rect width="480" height="300" fill="#e3e9ee"/>
-<polygon points="0,0 480,0 300,95 180,95" fill="url(#fa-ceil)"/>
-<polygon points="0,0 180,95 180,150 0,300" fill="#dbe3ea"/>
-<polygon points="480,0 300,95 300,150 480,300" fill="#dbe3ea"/>
-<rect x="180" y="95" width="120" height="55" fill="#eef2f5"/>
-<rect x="226" y="104" width="28" height="40" rx="3" fill="#cfd8e0"/>
-<polygon points="180,150 300,150 480,300 0,300" fill="#b7c2cd"/>
-<polygon points="218,150 262,150 330,300 150,300" fill="#55697f"/>
-<polygon points="0,18 180,97 180,110 0,72" fill="#fbfcfd" stroke="#cdd6de"/>
-<polygon points="480,18 300,97 300,110 480,72" fill="#fbfcfd" stroke="#cdd6de"/>
-<g fill="#9fc4e2" stroke="#c3ced8" stroke-width="3">
-<ellipse cx="38" cy="118" rx="12" ry="18"/><ellipse cx="96" cy="124" rx="9" ry="14"/><ellipse cx="142" cy="128" rx="6" ry="10"/>
-<ellipse cx="442" cy="118" rx="12" ry="18"/><ellipse cx="384" cy="124" rx="9" ry="14"/><ellipse cx="338" cy="128" rx="6" ry="10"/>
-</g>
-<g fill="url(#fa-seat)">
-<rect x="150" y="136" width="34" height="30" rx="6"/><rect x="104" y="146" width="62" height="56" rx="10"/><rect x="14" y="168" width="128" height="132" rx="16"/>
-<rect x="296" y="136" width="34" height="30" rx="6"/><rect x="314" y="146" width="62" height="56" rx="10"/><rect x="338" y="168" width="128" height="132" rx="16"/>
-</g>
-<g fill="#e9eff4" opacity=".9">
-<rect x="154" y="138" width="26" height="7" rx="3"/><rect x="110" y="149" width="50" height="11" rx="5"/><rect x="26" y="173" width="104" height="22" rx="9"/>
-<rect x="300" y="138" width="26" height="7" rx="3"/><rect x="320" y="149" width="50" height="11" rx="5"/><rect x="350" y="173" width="104" height="22" rx="9"/>
-</g>
-<g filter="url(#fa-blur)">
-<rect x="206" y="196" width="68" height="62" rx="5" fill="#9aa7b4"/>
-<circle cx="240" cy="122" r="13" fill="#e4b896"/>
-<path d="M226 120 q14-22 28 0 q-2-16-14-16 q-12 0-14 16z" fill="#4a3426"/>
-<path d="M226 138 h28 l10 70 h-48z" fill="#1f3f63"/>
-<path d="M232 138 l8 14 l8-14" fill="#c8102e"/>
-<rect x="228" y="208" width="9" height="40" fill="#1f3f63"/><rect x="243" y="208" width="9" height="40" fill="#1f3f63"/>
-</g>
-<rect x="190" y="92" width="100" height="172" rx="14" fill="#1d4f74" opacity=".28"/>
-<g transform="translate(240 178)">
-<rect x="-58" y="-17" width="116" height="34" rx="17" fill="#ffffff" opacity=".95"/>
-<path d="M-40-9 l9-4 l9 4 v6 c0 6-4 10-9 12 c-5-2-9-6-9-12z" fill="#1d6fa8"/>
-<text x="-16" y="5" font-family="system-ui,sans-serif" font-size="12.5" font-weight="700" fill="#173e5c">Cubierto</text>
-</g>
-</svg>
+<figure class="hero-shots">
+<div class="browser"><div class="browser-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">es.wikipedia.org/wiki/Moda</span><span class="ext" aria-hidden="true">ש</span></div>
+<img src="/img/pc-demo-hero.webp" width="1140" height="878" alt="Captura real de Chrome con Shomer Web en el artículo «Moda» de Wikipedia: la foto de la modelo aparece pixelada por el filtro y el texto se lee normal.">
+</div>
+<div class="phone hero-phone"><img src="/img/and-imagen-tapada.webp" width="540" height="1200" alt="Captura real de Android: Chrome con el artículo Moda de Wikipedia y la foto de la modelo tapada por un recuadro gris opaco de Shomer 1.0.1."></div>
+<figcaption><span class="real">✓ Capturas reales</span> Shomer Web en Chrome (artículo de Wikipedia, CC BY-SA) y la app de Android 1.0.1.</figcaption>
 </figure>
-<div class="line"></div><div class="line short"></div>
-</div>
-<p class="mock-note">Ilustración conceptual, no una captura del producto.</p>
-<div class="toast"><i>✓</i>Contenido cubierto según tus ajustes</div>
-</div>
 </section>
 </div></div>
 
@@ -280,56 +227,42 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <div class="head"><span class="eyebrow">Descargas</span><h2>Descarga Shomer</h2><p class="intro">Elige tu dispositivo. Los botones descargan el archivo directamente; abajo tienes la guía paso a paso.</p></div>
 <div class="cards">
 <article class="card featured dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-browser"/></svg></span><span class="status ok">Disponible</span></div><h3>Computadora</h3><p>Extensión para <strong>Chrome, Edge y Brave</strong> en Windows, Mac o Linux. Cubre imágenes y videos dentro del navegador.</p><a class="button" href="/downloads/shomer-web.zip" download><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar (ZIP)</a><p class="small-print"><a href="#instalacion" data-open-device="computer">¿Cómo se instala? →</a></p></article>
-<article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status ok">Disponible</span></div><h3>Android</h3><p>APK que <strong>filtra todo el teléfono</strong>: bloquea sitios para adultos y publicidad en todas las apps (filtro DNS) y tapa imágenes de personas sobre cualquier app. Versión 1.0.0 (~110&nbsp;MB, incluye los modelos), firmada.</p><a class="button" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 1.0.0</a><p class="small-print"><a href="#instalacion" data-open-device="android">¿Cómo se instala? →</a></p></article>
+<article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status ok">Disponible</span></div><h3>Android</h3><p>APK que <strong>filtra todo el teléfono</strong>: bloquea sitios para adultos y publicidad en todas las apps (filtro DNS) y tapa imágenes de personas sobre cualquier app. Versión 1.0.1 (~110&nbsp;MB, incluye los modelos), firmada.</p><a class="button" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.1/shomer-android-1.0.1.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 1.0.1</a><p class="small-print"><a href="#instalacion" data-open-device="android">¿Cómo se instala? →</a></p></article>
 <article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-apple"/></svg></span><span class="status wait">Próximamente</span></div><h3>iPhone y iPad</h3><p>Apple no permite instalar apps desde una página web: la app llegará por <strong>TestFlight o App Store</strong>. Mientras tanto puedes activar el filtro que ya trae tu iPhone.</p><span class="button off">Aún no disponible</span><p class="small-print"><a href="#instalacion" data-open-device="apple">Qué hacer mientras tanto →</a></p></article>
 </div>
 </section>
 
 <section class="section" id="app">
-<div class="head center"><span class="eyebrow">La app de Android</span><h2>Así funciona en tu teléfono</h2><p class="intro">Eliges dónde filtrar, activas el filtro y Shomer protege todas las apps. El filtro de imágenes tapa a las personas encima de lo que estés viendo.</p></div>
+<div class="head center"><span class="eyebrow">La app de Android</span><h2>Así se ve en tu teléfono</h2><p class="intro">Pantallas reales de Shomer 1.0.1, el mismo APK que descargas aquí. Eliges dónde filtrar, aceptas los permisos de Android y queda funcionando.</p></div>
 <div class="shots">
-<figure class="shot">
-<div class="phone"><div class="screen">
-<div class="sbar"><span>9:41</span><span>▰▰▰ 100%</span></div>
-<div class="app">
-<div class="t">Shomer — filtro</div>
-<div class="sub">Bloquea sitios para adultos y publicidad con un filtro DNS local. Las consultas permitidas usan CleanBrowsing Family y fuerza la búsqueda segura.</div>
-<div class="q">¿Dónde quieres filtrar?</div>
-<div class="radio on"><i></i><span>Todo el teléfono (todas las apps)</span></div>
-<div class="radio"><i></i><span>Solo navegadores (Chrome, Firefox…)</span></div>
-<div class="bbtn pri">Activar filtro</div>
-<div class="sstat"><i>✓</i><span>Filtro activo — todas las apps</span></div>
+<figure class="shot"><div class="phone"><img src="/img/and-inicio.webp" width="540" height="1200" loading="lazy" alt="Pantalla principal de Shomer con las opciones Todo el teléfono y Solo navegadores y el botón Activar filtro"></div><figcaption><b>1. Elige dónde filtrar</b>«Todo el teléfono» o «Solo navegadores», y pulsa Activar filtro.</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-permiso-vpn.webp" width="540" height="1200" loading="lazy" alt="Diálogo de Android Solicitud de conexión: Shomer quiere configurar una conexión VPN, con los botones Cancelar y Aceptar"></div><figcaption><b>2. Acepta la VPN de Shomer</b>Android lo pide una sola vez. Solo revisa consultas DNS.</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-filtro-activo.webp" width="540" height="1200" loading="lazy" alt="Shomer con el estado Filtro activo en todas las apps del teléfono y el contador de consultas"></div><figcaption><b>3. Filtro activo</b>Muestra cuántas consultas revisó y cuántas bloqueó.</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-vpn-siempre.webp" width="540" height="1200" loading="lazy" alt="Ajustes de Android de la VPN de Shomer con VPN siempre activada encendido y Bloquear conexiones sin VPN apagado"></div><figcaption><b>4. Que siga activo</b>Enciende «VPN siempre activada» y deja apagado «Bloquear conexiones sin VPN».</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-mostrar-sobre.webp" width="540" height="1200" loading="lazy" alt="Ajuste de Android Mostrar sobre otras apps activado para Shomer"></div><figcaption><b>5. Permiso de superposición</b>Para el filtro de imágenes: «Permitir mostrar sobre otras apps».</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-compartir-pantalla.webp" width="540" height="1200" loading="lazy" alt="Diálogo de Android ¿Deseas iniciar una grabación o transmisión con Shomer? con el botón Comenzar ahora"></div><figcaption><b>6. Compartir la pantalla</b>Android lo pide cada vez que activas el filtro de imágenes.</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-imagenes-activo.webp" width="540" height="1200" loading="lazy" alt="Shomer con el filtro de sitios y el filtro de imágenes activos"></div><figcaption><b>7. Los dos filtros activos</b>Sitios bloqueados y personas tapadas encima de cualquier app.</figcaption></figure>
+<figure class="shot"><div class="phone"><img src="/img/and-imagen-tapada.webp" width="540" height="1200" loading="lazy" alt="Chrome en Android con una foto de una modelo tapada por el recuadro gris de Shomer"></div><figcaption><b>8. Así tapa una foto</b>Encima de Chrome o de cualquier otra app, mientras navegas.</figcaption></figure>
 </div>
-</div></div>
-<figcaption><b>Elige y activa.</b> «Todo el teléfono» o «Solo navegadores», con un toque.</figcaption>
-</figure>
-<figure class="shot">
-<div class="phone"><div class="screen">
-<div class="sbar"><span>9:41</span><span>▰▰▰ 100%</span></div>
-<div class="app" style="padding-bottom:0">
-<div class="t">Hacerlo permanente</div>
-<div class="sub">Para que no se pueda saltar: activa «VPN siempre activa» y «Bloquear conexiones sin VPN».</div>
-<div class="radio on"><i></i><span>VPN siempre activa</span></div>
-<div class="radio on"><i></i><span>Bloquear conexiones sin VPN</span></div>
-<div class="bbtn sec">Abrir ajustes de VPN</div>
-<div class="sstat"><i>✓</i><span>Shomer · VPN siempre activa</span></div>
+<p class="shots-note"><span class="real">✓ Capturas reales</span>Shomer 1.0.1 (el APK publicado) en Android 14, tomadas en un emulador Pixel 6.</p>
+</section>
+
+<section class="section" id="computadora">
+<div class="split">
+<div>
+<span class="eyebrow">En la computadora</span><h2>Shomer Web para Chrome, Edge y Brave</h2>
+<p class="intro">Una extensión que revisa las imágenes y videos de cada página y cubre lo que no quieres ver. El análisis se hace en tu computadora.</p>
+<ul class="checks">
+<li><span><strong>Dos niveles.</strong> Normal cubre solo la piel expuesta; Estricto cubre a la persona completa.</span></li>
+<li><span><strong>Desenfoque o bloque sólido</strong>, como prefieras.</span></li>
+<li><span><strong>Bloquea anuncios</strong>: de red, banners y cortes comerciales.</span></li>
+<li><span><strong>PIN familiar</strong> para que nadie más cambie los ajustes.</span></li>
+<li><span>En español, inglés y hebreo.</span></li>
+</ul>
+<div class="actions"><a class="button" href="/downloads/shomer-web.zip" download>Descargar Shomer Web</a><a class="button ghost-dark" href="#instalacion" data-open-device="computer">Ver la guía →</a></div>
 </div>
-</div></div>
-<figcaption><b>Difícil de saltar.</b> Queda siempre encendido, incluso tras reiniciar.</figcaption>
-</figure>
-<figure class="shot">
-<div class="phone"><div class="screen">
-<div class="sbar"><span>9:41</span><span>▰▰▰ 100%</span></div>
-<div class="feed">
-<div class="pic"></div>
-<div class="cover" style="left:22%;top:16%;width:56%;height:46%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/></svg></div>
-<div class="ov"><i>ש</i><span>Shomer tapó a 1 persona en esta pantalla</span></div>
+<figure class="popup-shot"><img src="/img/pc-ventana-shomer.webp" width="570" height="1242" loading="lazy" alt="Captura real de la ventana de Shomer Web: Protección activa, nivel de filtrado Normal o Estricto, tipo de cubierta Desenfoque o Bloque sólido, retraso de seguridad, filtrar imágenes, bloquear anuncios y PIN familiar"><figcaption><span class="real">✓ Captura real</span> La ventana que se abre al pulsar el ícono de Shomer.</figcaption></figure>
 </div>
-</div></div>
-<figcaption><b>Filtro de imágenes.</b> Tapa a las personas encima de cualquier app, en el teléfono.</figcaption>
-</figure>
-</div>
-<p class="detected" style="margin-top:24px">Reproducción de la interfaz de la app 1.0.0.</p>
 </section>
 
 <section class="section" id="instalacion">
@@ -364,11 +297,19 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <p data-only="linux">Clic derecho sobre <kbd>shomer-web.zip</kbd> › <kbd>Extraer aquí</kbd>, o en la terminal: <code>unzip shomer-web.zip</code>. Aparece una carpeta llamada <kbd>shomer-web</kbd>.</p></div></li>
 <li><div><strong>Deja la carpeta en un lugar fijo</strong><p><span data-only="windows mac">Muévela a <kbd>Documentos</kbd>.</span><span data-only="chromebook">Déjala en <kbd>Mis archivos</kbd>, no en Descargas: el Chromebook vacía Descargas cuando le falta espacio.</span><span data-only="linux">Muévela a tu carpeta personal.</span> No la borres después: el navegador la usa todo el tiempo.</p></div></li>
 <li><div><strong>Abre la página de extensiones</strong><p>Copia esta dirección, pégala en la barra de direcciones de <span data-browser-name>Chrome</span> y pulsa <kbd>Enter</kbd>:</p><div class="copy"><code class="addr" id="addr-1">chrome://extensions</code><button type="button" data-copy="addr-1">Copiar</button></div></div></li>
-<li><div><strong>Activa el «Modo de desarrollador»</strong><p data-only-browser="chrome brave">Es un interruptor en la esquina superior derecha de la página.</p><p data-only-browser="edge">Es un interruptor en el menú de la izquierda (si no ves el menú, haz la ventana más ancha).</p></div></li>
-<li><div><strong>Carga la carpeta de Shomer</strong><p>Pulsa <kbd data-only-browser="chrome brave">Cargar descomprimida</kbd><kbd data-only-browser="edge">Cargar desempaquetada</kbd>, que aparece arriba. Elige la carpeta <kbd>shomer-web</kbd> del paso 3 y pulsa <kbd data-only="windows">Seleccionar carpeta</kbd><kbd data-only="mac">Seleccionar</kbd><kbd data-only="chromebook linux">Abrir</kbd>.</p></div></li>
-<li><div><strong>Fija Shomer en la barra</strong><p>Pulsa el ícono de pieza de rompecabezas 🧩 junto a la barra de direcciones y luego el alfiler junto a <kbd>Shomer Web</kbd>. Desde ese ícono ajustas el nivel del filtro.</p></div></li>
+<li><div><strong>Enciende el modo de desarrollador</strong><p data-only-browser="chrome brave">Es el interruptor <kbd>Modo de desarrollador</kbd>, en la esquina superior derecha de la página. Enciéndelo.</p><p data-only-browser="edge">Es el interruptor <kbd>Modo para desarrolladores</kbd>, abajo en el menú de la izquierda (si no ves el menú, haz la ventana más ancha). Enciéndelo.</p>
+<img class="step-shot" data-only-browser="chrome brave" src="/img/pc-chrome-modo-desarrollador.webp" width="780" height="81" loading="lazy" alt="Captura real de chrome://extensions con el interruptor Modo de desarrollador encendido">
+<img class="step-shot" data-only-browser="edge" src="/img/pc-edge-modo-desarrollador.webp" width="420" height="87" loading="lazy" alt="Captura real de edge://extensions con el interruptor Modo para desarrolladores encendido"></div></li>
+<li><div><strong>Carga la carpeta de Shomer</strong><p>Pulsa <kbd data-only-browser="chrome brave">Cargar extensión sin empaquetar</kbd><kbd data-only-browser="edge">Carga desempaquetada</kbd>, que aparece arriba<span data-only-browser="chrome brave"> (en versiones antiguas se llama <kbd>Cargar descomprimida</kbd>)</span>. Elige la carpeta <kbd>shomer-web</kbd> del paso 3 y pulsa <kbd data-only="windows">Seleccionar carpeta</kbd><kbd data-only="mac">Seleccionar</kbd><kbd data-only="chromebook linux">Abrir</kbd>.</p>
+<img class="step-shot" data-only-browser="chrome brave" src="/img/pc-chrome-cargar.webp" width="942" height="75" loading="lazy" alt="Captura real: botones Cargar extensión sin empaquetar, Empaquetar extensión y Actualizar en Chrome">
+<img class="step-shot" data-only-browser="edge" src="/img/pc-edge-cargar.webp" width="1245" height="75" loading="lazy" alt="Captura real: Opciones de desarrollador con los botones Carga desempaquetada, Empaquetar extensión y Actualizar en Edge">
+<p style="margin-top:12px">Aparece la tarjeta de Shomer Web con su interruptor encendido<span data-only-browser="chrome brave">:</span><span data-only-browser="edge">.</span></p>
+<img class="step-shot" data-only-browser="chrome brave" style="width:460px" src="/img/pc-chrome-listo.webp" width="675" height="262" loading="lazy" alt="Captura real de la tarjeta de Shomer Web instalada, con el interruptor encendido"></div></li>
+<li><div><strong>Fija Shomer en la barra</strong><p>Pulsa el ícono de pieza de rompecabezas 🧩 junto a la barra de direcciones y luego el alfiler junto a <kbd>Shomer Web</kbd>. Desde ese ícono ajustas el nivel del filtro.</p>
+<div class="step-phones"><figure class="flat" style="width:210px"><img src="/img/pc-ventana-shomer.webp" width="570" height="1242" loading="lazy" alt="Captura real de la ventana de Shomer Web"><figcaption>Esto se abre al pulsar el ícono.</figcaption></figure></div></div></li>
 </ol>
 <p class="done">✓ Listo. Shomer Web ya revisa las páginas que abras en <span data-browser-name>Chrome</span>.</p>
+<p class="shot-label"><span class="real">✓ Capturas reales</span> de Chrome y Edge.<span data-only-browser="brave"> Brave se ve casi igual que Chrome.</span></p>
 <div class="box warn2" data-only="chromebook"><svg class="icon"><use href="#i-alert"/></svg><div><strong>¿El Chromebook es de la escuela o del trabajo?</strong><p>Si no aparece el «Modo de desarrollador», el administrador lo bloqueó y Shomer no se puede instalar en ese equipo.</p></div></div>
 </div>
 
@@ -384,15 +325,22 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <!-- Android -->
 <div class="panel" data-panel="android" hidden>
 <p class="lead2">Hazlo desde el propio teléfono o tablet Android (Android 8 o posterior). Android pide confirmar algunos pasos porque la app no viene de Google Play.</p>
-<div class="box tip" style="margin:0 0 22px"><svg class="icon"><use href="#i-info"/></svg><div><strong>¿Tenías instalada la versión de prueba 0.3.0?</strong><p>Desinstálala primero (mantén pulsado el ícono de Shomer › <kbd>Desinstalar</kbd>). La 1.0.0 está firmada con otra clave y Android no deja instalarla encima.</p></div></div>
+<div class="box tip" style="margin:0 0 22px"><svg class="icon"><use href="#i-info"/></svg><div><strong>¿Ya tienes Shomer?</strong><p>Si tienes la 1.0.0, instala la 1.0.1 encima: se actualiza sin perder nada. Si tienes la versión de prueba 0.3.0, sigue leyendo.</p><strong style="display:block;margin-top:8px">¿Tenías instalada la versión de prueba 0.3.0?</strong><p>Desinstálala primero (mantén pulsado el ícono de Shomer › <kbd>Desinstalar</kbd>). La 1.0.1 está firmada con otra clave y Android no deja instalarla encima.</p></div></div>
 <ol class="steps">
-<li><div><strong>Descarga el APK</strong><p>Pulsa el botón desde el teléfono (son unos 110&nbsp;MB porque incluye los modelos; mejor con Wi-Fi). Si Chrome pregunta, pulsa <kbd>Descargar de todas formas</kbd>.</p><a class="button small" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 1.0.0</a></div></li>
-<li><div><strong>Abre el archivo e instálalo</strong><p>Toca <kbd>Abrir</kbd> en el aviso de descarga (o búscalo en <kbd>Archivos</kbd> › <kbd>Descargas</kbd>). Si aparece «no puede instalar apps desconocidas», toca <kbd>Configuración</kbd>, activa <kbd>Permitir de esta fuente</kbd> y vuelve atrás. Si Play Protect avisa, toca <kbd>Más detalles</kbd> › <kbd>Instalar de todas formas</kbd>.</p></div></li>
-<li><div><strong>Abre Shomer y elige dónde filtrar</strong><p>En «¿Dónde quieres filtrar?» elige <kbd>Todo el teléfono</kbd> (todas las apps) o <kbd>Solo navegadores</kbd>. Luego pulsa <kbd>Activar filtro</kbd> y acepta la <strong>VPN de Shomer</strong> cuando Android lo pida. Esa VPN solo revisa consultas DNS; no guarda tu navegación.</p></div></li>
-<li><div><strong>Haz que no se pueda saltar</strong><p>Pulsa <kbd>Hacerlo permanente</kbd> y en Ajustes de VPN activa <kbd>VPN siempre activa</kbd> y <kbd>Bloquear conexiones sin VPN</kbd>. Si «DNS privado» tiene un nombre de proveedor, ponlo en <kbd>Automático</kbd>.</p></div></li>
-<li><div><strong>(Opcional) Activa el filtro de imágenes</strong><p>Más abajo en la app, pulsa <kbd>Permitir «Mostrar sobre otras apps»</kbd>, luego <kbd>Activar filtro de imágenes</kbd> y acepta compartir la pantalla. Shomer tapará con un recuadro gris a las personas que haya que cubrir, encima de cualquier app. Gasta más batería.</p></div></li>
+<li><div><strong>Descarga el APK</strong><p>Pulsa el botón desde el teléfono. Son unos 107&nbsp;MB porque incluye los modelos, así que mejor descárgalo con Wi-Fi. Si Chrome pregunta, pulsa <kbd>Descargar de todos modos</kbd>. Cuando termine, toca <kbd>Abrir</kbd>.</p><a class="button small" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.1/shomer-android-1.0.1.apk"><svg class="icon"><use href="#i-down"/></svg>Descargar APK 1.0.1</a>
+<img class="step-shot" style="width:360px" src="/img/and-i1-descargado.webp" width="720" height="373" loading="lazy" alt="Captura real de Chrome en Android: Archivo descargado, 107 MB, con el botón Abrir"><span class="shot-label">Toca «Abrir» cuando termine.</span></div></li>
+<li><div><strong>Permite instalarla e instálala</strong><p>La primera vez, Android avisa «Por tu seguridad, el teléfono no tiene permitido instalar apps desconocidas de esta fuente». Toca <kbd>Configuración</kbd>, enciende <kbd>Confiar en esta fuente</kbd> (en algunos teléfonos se llama <kbd>Permitir de esta fuente</kbd>) y luego toca <kbd>Instalar</kbd>. Si Play Protect avisa, toca <kbd>Más detalles</kbd> › <kbd>Instalar de todas formas</kbd>.</p>
+<div class="step-phones"><figure><img src="/img/and-i2-confiar.webp" width="540" height="1200" loading="lazy" alt="Captura real del ajuste de Android Instalar apps desconocidas para Chrome con Confiar en esta fuente encendido"><figcaption>Enciende «Confiar en esta fuente».</figcaption></figure><figure><img src="/img/and-i3-instalar.webp" width="540" height="1200" loading="lazy" alt="Captura real del diálogo de Android: Shomer, ¿Deseas instalar esta app?, con los botones Cancelar e Instalar"><figcaption>Toca «Instalar».</figcaption></figure></div></div></li>
+<li><div><strong>Abre Shomer y activa el filtro</strong><p>En «¿Dónde quieres filtrar?» elige <kbd>Todo el teléfono</kbd> (todas las apps) o <kbd>Solo navegadores</kbd>. Pulsa <kbd>Activar filtro</kbd> y en «Solicitud de conexión» toca <kbd>Aceptar</kbd>. Esa VPN solo revisa las consultas DNS y no guarda tu navegación.</p>
+<div class="step-phones"><figure><img src="/img/and-inicio.webp" width="540" height="1200" loading="lazy" alt="Captura real de la pantalla principal de Shomer"><figcaption>Elige y pulsa «Activar filtro».</figcaption></figure><figure><img src="/img/and-permiso-vpn.webp" width="540" height="1200" loading="lazy" alt="Captura real del diálogo Solicitud de conexión de la VPN de Shomer"><figcaption>Toca «Aceptar».</figcaption></figure><figure><img src="/img/and-filtro-activo.webp" width="540" height="1200" loading="lazy" alt="Captura real de Shomer con el filtro activo en todas las apps"><figcaption>Listo: «Filtro activo».</figcaption></figure></div></div></li>
+<li><div><strong>Haz que siga activo al reiniciar</strong><p>Pulsa <kbd>Hacerlo permanente</kbd>, toca el engrane ⚙ junto a Shomer y enciende <kbd>VPN siempre activada</kbd>. Si «DNS privado» tiene un nombre de proveedor, ponlo en <kbd>Automático</kbd>.</p>
+<div class="step-phones"><figure><img src="/img/and-vpn-siempre.webp" width="540" height="1200" loading="lazy" alt="Captura real de los ajustes de la VPN de Shomer con VPN siempre activada encendido"><figcaption>Solo «VPN siempre activada».</figcaption></figure></div>
+<div class="box warn2" style="margin-top:16px"><svg class="icon"><use href="#i-alert"/></svg><div><strong>No actives «Bloquear conexiones sin VPN».</strong><p>Shomer solo filtra el DNS, así que con ese ajuste Android corta el resto de la conexión y te quedas sin internet. Lo comprobamos:</p><div class="step-phones"><figure><img src="/img/and-chrome-bloqueo.webp" width="540" height="700" style="border-radius:16px 16px 6px 6px" loading="lazy" alt="Captura real de Chrome en Android: Se bloqueó tu acceso a Internet, ERR_NETWORK_ACCESS_DENIED"><figcaption>Con ese ajuste: sin internet.</figcaption></figure></div></div></div></div></li>
+<li><div><strong>(Opcional) Activa el filtro de imágenes</strong><p>Más abajo en la app, pulsa <kbd>Permitir «Mostrar sobre otras apps»</kbd> y enciende <kbd>Permitir mostrar sobre otras apps</kbd>. Vuelve, pulsa <kbd>Activar filtro de imágenes</kbd> y toca <kbd>Comenzar ahora</kbd>. Shomer tapará con un recuadro gris a las personas que haya que cubrir, encima de cualquier app. Gasta más batería.</p>
+<div class="step-phones"><figure><img src="/img/and-mostrar-sobre.webp" width="540" height="1200" loading="lazy" alt="Captura real del ajuste Mostrar sobre otras apps para Shomer"><figcaption>Enciende el permiso.</figcaption></figure><figure><img src="/img/and-compartir-pantalla.webp" width="540" height="1200" loading="lazy" alt="Captura real del diálogo ¿Deseas iniciar una grabación o transmisión con Shomer?"><figcaption>Toca «Comenzar ahora».</figcaption></figure><figure><img src="/img/and-imagen-tapada.webp" width="540" height="1200" loading="lazy" alt="Captura real: foto tapada por Shomer en Chrome"><figcaption>Así queda una foto tapada.</figcaption></figure></div></div></li>
 </ol>
 <p class="done">✓ Listo. Shomer ya filtra tu Android.</p>
+<p class="shot-label"><span class="real">✓ Capturas reales</span> de Shomer 1.0.1 en Android 14 (emulador Pixel 6). En tu teléfono los textos pueden variar un poco según la marca.</p>
 <div class="box tip"><svg class="icon"><use href="#i-shield"/></svg><div><strong>¿No quieres instalar nada?</strong><p>Filtra los sitios para adultos en todas las apps con el DNS del sistema: <kbd>Ajustes</kbd> › <kbd>Red e Internet</kbd> › <kbd>DNS privado</kbd> › <kbd>Nombre del proveedor</kbd> y escribe:</p><div class="copy"><code id="dns-android">family-filter-dns.cleanbrowsing.org</code><button type="button" data-copy="dns-android">Copiar</button></div><p>No tapa imágenes dentro de las apps; para eso instala la app.</p></div></div>
 </div>
 
@@ -411,7 +359,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <p class="done">✓ Listo. Tu <span data-device-name>iPhone</span> ya bloquea los sitios para adultos.</p>
 </div>
 </div>
-<noscript><p>Activa JavaScript para elegir tu dispositivo. También puedes descargar <a href="/downloads/shomer-web.zip">Shomer Web para computadora</a> o el <a href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk">APK 1.0.0 para Android</a>.</p></noscript>
+<noscript><p>Activa JavaScript para elegir tu dispositivo. También puedes descargar <a href="/downloads/shomer-web.zip">Shomer Web para computadora</a> o el <a href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.1/shomer-android-1.0.1.apk">APK 1.0.1 para Android</a>.</p></noscript>
 </section>
 
 <section class="section" id="privacidad">
@@ -429,7 +377,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <details><summary>¿Shomer cubre todo el contenido?</summary><p>No. La detección puede omitir contenido o cubrir de más. Los videos protegidos y algunos formatos tienen limitaciones.</p></details>
 <details><summary>¿Qué computadoras son compatibles?</summary><p>El proyecto incluye una extensión para Chrome, Edge y Brave en computadora. No contamos todavía con una tabla de dispositivos y versiones comprobados.</p></details>
 <details><summary>¿Cómo detengo Shomer Web?</summary><p>Abre la página de extensiones de tu navegador y desactiva o elimina Shomer Web. También puedes revisar sus ajustes desde el botón de extensiones.</p></details>
-<details><summary>¿Qué hay para mi teléfono?</summary><p>Para Android hay un APK (1.0.0) que filtra todo el teléfono: bloquea sitios para adultos y publicidad en todas las apps y tapa imágenes de personas encima de cualquier app. Para iPhone, Apple solo permite instalar desde TestFlight o App Store, y la app aún no está publicada.</p></details>
+<details><summary>¿Qué hay para mi teléfono?</summary><p>Para Android hay un APK (1.0.1) que filtra todo el teléfono: bloquea sitios para adultos y publicidad en todas las apps y tapa imágenes de personas encima de cualquier app. Para iPhone, Apple solo permite instalar desde TestFlight o App Store, y la app aún no está publicada.</p></details>
 </div>
 </section>
 

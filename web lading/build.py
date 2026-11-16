@@ -7,6 +7,11 @@ output = Path(__file__).resolve().parent / "public"
 output.mkdir(exist_ok=True)
 shutil.copyfile(Path(__file__).resolve().parent / "index.html", output / "index.html")
 shutil.copyfile(Path(__file__).resolve().parent / "guide.js", output / "guide.js")
+# Real screenshots used by the page (taken by the "Android screenshots" and "Website screenshots" workflows).
+images = output / "img"
+if images.exists():
+    shutil.rmtree(images)
+shutil.copytree(Path(__file__).resolve().parent / "img", images)
 downloads = output / "downloads"
 downloads.mkdir(exist_ok=True)
 # Installers checked into web lading/downloads (e.g. the Android APK) are published as-is.

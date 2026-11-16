@@ -45,7 +45,7 @@ adb shell settings put secure show_ime_with_hard_keyboard 0
 adb shell input keyevent KEYCODE_WAKEUP; adb shell wm dismiss-keyguard
 
 # Instalación como lo hace una persona: descargar el APK con Chrome y abrirlo.
-URL=${APK_URL:-https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk}
+URL=${APK_URL:-https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.1/shomer-android-1.0.1.apk}
 CHROME=com.android.chrome
 adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run --disable-signin-promo" > /data/local/tmp/chrome-command-line'
 adb shell am set-debug-app --persistent $CHROME
@@ -55,7 +55,7 @@ chrome() { adb shell am start -a android.intent.action.VIEW -d "$1" -p $CHROME >
 chrome "$URL"
 ui tap '(Descargar de todos modos|Descargar de todas formas|^Descargar$)' 0 && shot c1-descargar 2
 for i in $(seq 1 60); do  # wait for the 112 MB download
-  size=$(adb shell stat -c %s /sdcard/Download/shomer-android-1.0.0.apk 2>/dev/null | tr -d '
+  size=$(adb shell stat -c %s /sdcard/Download/shomer-android-1.0.1.apk 2>/dev/null | tr -d '
 ')
   [ "${size:-0}" -gt 110000000 ] && break; sleep 3
 done
