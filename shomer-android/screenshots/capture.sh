@@ -39,25 +39,37 @@ sleep 15; demo
 adb shell settings put secure show_ime_with_hard_keyboard 0
 adb shell input keyevent KEYCODE_WAKEUP; adb shell wm dismiss-keyguard
 
-# Instalación como lo hace una persona: abrir el APK desde Archivos › Descargas.
-adb push "$APK" /sdcard/Download/shomer-android-1.0.0.apk
-adb shell am start -a android.intent.action.VIEW_DOWNLOADS >/dev/null 2>&1 ||   adb shell am start -n com.google.android.documentsui/com.android.documentsui.files.FilesActivity
-sleep 6; demo; shot i1-descargas 2
-ui tap 'shomer-android' 1 && shot i2-fuentes-desconocidas 4
-ui tap '^(Configuración|Ajustes|Settings)$' 0 && shot i3-permitir-fuente 3
-ui tap '(Permitir de esta fuente|Allow from this source)' 0 && shot i3-permitir-fuente 2
-adb shell input keyevent KEYCODE_BACK; shot i4-instalar 3
-ui tap '^(Instalar|Install)$' 0 && shot i5-instalando 6
+# Instalación como lo hace una persona: descargar el APK con Chrome y abrirlo.
+URL=${APK_URL:-https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk}
+CHROME=com.android.chrome
+adb shell 'echo "_ --disable-fre --no-default-browser-check --no-first-run --disable-signin-promo" > /data/local/tmp/chrome-command-line'
+adb shell am set-debug-app --persistent $CHROME
+adb shell pm grant $CHROME android.permission.POST_NOTIFICATIONS 2>/dev/null || true
+chrome() { adb shell am start -a android.intent.action.VIEW -d "$1" -p $CHROME >/dev/null; sleep 5
+  for i in 1 2 3; do ui tap '^(Usar sin una cuenta|Continuar sin cuenta|No, gracias|Aceptar y continuar|Entendido|Aceptar)$' 0 >/dev/null || break; sleep 2; done; }
+chrome "$URL"
+ui tap '(Descargar de todos modos|Descargar de todas formas|^Descargar$)' 0 && shot c1-descargar 2
+for i in $(seq 1 60); do  # wait for the 112 MB download
+  size=$(adb shell stat -c %s /sdcard/Download/shomer-android-1.0.0.apk 2>/dev/null | tr -d '')
+  [ "${size:-0}" -gt 110000000 ] && break; sleep 3
+done
+shot c2-descargado 3
+ui tap '^Abrir$' 0 && shot c3-fuentes-desconocidas 4
+ui tap '^(Configuración|Ajustes)$' 0 && shot c4-permitir-fuente 3
+ui tap '(Permitir de esta fuente|Confiar en esta fuente)' 0 && shot c4-permitir-fuente 2
+adb shell input keyevent KEYCODE_BACK; shot c5-instalar 4
+ui tap '^Instalar$' 0 && sleep 15 && shot c6-instalada 2
 adb shell pm list packages | grep -q $PKG || adb install -r "$APK"
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 adb shell am start -W -n $PKG/.MainActivity
+adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 demo; shot 01-inicio 4
 
 # Filtro de sitios: permiso de VPN, filtro activo
 ui tap '^Activar filtro$' && shot 02-permiso-vpn 3
 ui tap '^(Aceptar|OK|Permitir)$' && shot 03-filtro-activo 4
 # Hold the filter for a bit so the query counters move, then capture again.
-adb shell am start -a android.intent.action.VIEW -d https://example.com >/dev/null 2>&1; sleep 6
+chrome https://es.wikipedia.org/wiki/Shomer; sleep 3
 app; top; shot 03-filtro-activo 3
 
 # Hacerlo permanente: ajustes de VPN y la pantalla de Shomer con los interruptores
@@ -74,4 +86,11 @@ app
 ui tap 'Activar filtro de imágenes' && shot 07-compartir-pantalla 3
 ui tap '^(Iniciar|Empezar|Start|Comenzar|Compartir|Share screen)' 0 && shot 08-imagenes-activo 5
 app; top; shot 09-app-ambos-filtros 3
+
+# El filtro de imágenes funcionando sobre otra app (Chrome con un artículo con fotos de personas).
+chrome https://es.wikipedia.org/wiki/Moda; sleep 4
+adb shell input swipe 540 1600 540 900 600; sleep 12
+shot 10-imagen-tapada 1
+adb shell input swipe 540 1600 540 1000 600; sleep 12
+shot 11-imagen-tapada 1
 ls -la "$OUT"
