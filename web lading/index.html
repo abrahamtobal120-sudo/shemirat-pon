@@ -210,7 +210,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <h1>Elige lo que <span>quieres ver.</span></h1>
 <p class="lead">En Android, Shomer filtra <strong>todo el teléfono</strong>: bloquea sitios para adultos en todas las apps y tapa imágenes de personas encima de cualquier app. En la computadora, cubre imágenes y videos dentro del navegador. Instálalo en unos minutos con la guía.</p>
 <div class="actions"><a class="button light" href="#descargas">Descargar gratis →</a><a class="button ghost" href="#instalacion">Ver cómo se instala</a></div>
-<p class="fine"><svg class="icon" style="width:16px;height:16px"><use href="#i-info"/></svg>Para Android y computadora. Prototipo aún no probado en teléfonos reales; la detección puede equivocarse.</p>
+<p class="fine"><svg class="icon" style="width:16px;height:16px"><use href="#i-info"/></svg>Gratis para Android y computadora. Ningún filtro es perfecto: la detección puede equivocarse.</p>
 </div>
 <div class="mock" role="img" aria-label="Ilustración conceptual de un navegador mostrando el interior de un avión, con la azafata cubierta por el filtro">
 <div class="mock-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">vuelos.ejemplo.com</span><span class="ext">ש</span></div>
@@ -280,7 +280,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <div class="head"><span class="eyebrow">Descargas</span><h2>Descarga Shomer</h2><p class="intro">Elige tu dispositivo. Los botones descargan el archivo directamente; abajo tienes la guía paso a paso.</p></div>
 <div class="cards">
 <article class="card featured dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-browser"/></svg></span><span class="status ok">Disponible</span></div><h3>Computadora</h3><p>Extensión para <strong>Chrome, Edge y Brave</strong> en Windows, Mac o Linux. Cubre imágenes y videos dentro del navegador.</p><a class="button" href="/downloads/shomer-web.zip" download><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar (ZIP)</a><p class="small-print"><a href="#instalacion" data-open-device="computer">¿Cómo se instala? →</a></p></article>
-<article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status test">Prototipo</span></div><h3>Android</h3><p>APK que <strong>filtra todo el teléfono</strong>: bloquea sitios para adultos y publicidad en todas las apps (filtro DNS) y tapa imágenes de personas sobre cualquier app. Versión 0.3.0 (~110&nbsp;MB, incluye los modelos). <strong>Prototipo:</strong> aún no probado en teléfonos reales.</p><a class="button" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-prototipo-v0.3.0/shomer-android-0.3.0.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 0.3.0</a><p class="small-print"><a href="#instalacion" data-open-device="android">¿Cómo se instala? →</a></p></article>
+<article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-android"/></svg></span><span class="status ok">Disponible</span></div><h3>Android</h3><p>APK que <strong>filtra todo el teléfono</strong>: bloquea sitios para adultos y publicidad en todas las apps (filtro DNS) y tapa imágenes de personas sobre cualquier app. Versión 1.0.0 (~110&nbsp;MB, incluye los modelos), firmada.</p><a class="button" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 1.0.0</a><p class="small-print"><a href="#instalacion" data-open-device="android">¿Cómo se instala? →</a></p></article>
 <article class="card dl-card"><div class="card-top"><span class="ico"><svg class="icon"><use href="#i-apple"/></svg></span><span class="status wait">Próximamente</span></div><h3>iPhone y iPad</h3><p>Apple no permite instalar apps desde una página web: la app llegará por <strong>TestFlight o App Store</strong>. Mientras tanto puedes activar el filtro que ya trae tu iPhone.</p><span class="button off">Aún no disponible</span><p class="small-print"><a href="#instalacion" data-open-device="apple">Qué hacer mientras tanto →</a></p></article>
 </div>
 </section>
@@ -329,7 +329,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <figcaption><b>Filtro de imágenes.</b> Tapa a las personas encima de cualquier app, en el teléfono.</figcaption>
 </figure>
 </div>
-<p class="detected" style="margin-top:24px">Reproducción fiel de la interfaz de la app 0.3.0, no fotografías de un teléfono. Prototipo aún no validado en dispositivos reales.</p>
+<p class="detected" style="margin-top:24px">Reproducción de la interfaz de la app 1.0.0.</p>
 </section>
 
 <section class="section" id="instalacion">
@@ -384,9 +384,9 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <!-- Android -->
 <div class="panel" data-panel="android" hidden>
 <p class="lead2">Hazlo desde el propio teléfono o tablet Android (Android 8 o posterior). Android pide confirmar algunos pasos porque la app no viene de Google Play.</p>
-<div class="box warn2" style="margin:0 0 22px"><svg class="icon"><use href="#i-alert"/></svg><div><strong>Prototipo 0.3.0.</strong><p>Ya filtra todo el teléfono, pero todavía no se ha probado en dispositivos reales. Instálalo sabiendo que es una versión en pruebas.</p></div></div>
+<div class="box tip" style="margin:0 0 22px"><svg class="icon"><use href="#i-info"/></svg><div><strong>¿Tenías instalada la versión de prueba 0.3.0?</strong><p>Desinstálala primero (mantén pulsado el ícono de Shomer › <kbd>Desinstalar</kbd>). La 1.0.0 está firmada con otra clave y Android no deja instalarla encima.</p></div></div>
 <ol class="steps">
-<li><div><strong>Descarga el APK</strong><p>Pulsa el botón desde el teléfono (son unos 110&nbsp;MB porque incluye los modelos; mejor con Wi-Fi). Si Chrome pregunta, pulsa <kbd>Descargar de todas formas</kbd>.</p><a class="button small" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-prototipo-v0.3.0/shomer-android-0.3.0.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 0.3.0</a></div></li>
+<li><div><strong>Descarga el APK</strong><p>Pulsa el botón desde el teléfono (son unos 110&nbsp;MB porque incluye los modelos; mejor con Wi-Fi). Si Chrome pregunta, pulsa <kbd>Descargar de todas formas</kbd>.</p><a class="button small" href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk"><svg class="icon" style="width:18px;height:18px"><use href="#i-down"/></svg>Descargar APK 1.0.0</a></div></li>
 <li><div><strong>Abre el archivo e instálalo</strong><p>Toca <kbd>Abrir</kbd> en el aviso de descarga (o búscalo en <kbd>Archivos</kbd> › <kbd>Descargas</kbd>). Si aparece «no puede instalar apps desconocidas», toca <kbd>Configuración</kbd>, activa <kbd>Permitir de esta fuente</kbd> y vuelve atrás. Si Play Protect avisa, toca <kbd>Más detalles</kbd> › <kbd>Instalar de todas formas</kbd>.</p></div></li>
 <li><div><strong>Abre Shomer y elige dónde filtrar</strong><p>En «¿Dónde quieres filtrar?» elige <kbd>Todo el teléfono</kbd> (todas las apps) o <kbd>Solo navegadores</kbd>. Luego pulsa <kbd>Activar filtro</kbd> y acepta la <strong>VPN de Shomer</strong> cuando Android lo pida. Esa VPN solo revisa consultas DNS; no guarda tu navegación.</p></div></li>
 <li><div><strong>Haz que no se pueda saltar</strong><p>Pulsa <kbd>Hacerlo permanente</kbd> y en Ajustes de VPN activa <kbd>VPN siempre activa</kbd> y <kbd>Bloquear conexiones sin VPN</kbd>. Si «DNS privado» tiene un nombre de proveedor, ponlo en <kbd>Automático</kbd>.</p></div></li>
@@ -411,7 +411,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <p class="done">✓ Listo. Tu <span data-device-name>iPhone</span> ya bloquea los sitios para adultos.</p>
 </div>
 </div>
-<noscript><p>Activa JavaScript para elegir tu dispositivo. También puedes descargar <a href="/downloads/shomer-web.zip">Shomer Web para computadora</a> o el <a href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-prototipo-v0.3.0/shomer-android-0.3.0.apk">APK 0.3.0 para Android</a>.</p></noscript>
+<noscript><p>Activa JavaScript para elegir tu dispositivo. También puedes descargar <a href="/downloads/shomer-web.zip">Shomer Web para computadora</a> o el <a href="https://github.com/abrahamtobal120-sudo/shemirat-pon/releases/download/android-v1.0.0/shomer-android-1.0.0.apk">APK 1.0.0 para Android</a>.</p></noscript>
 </section>
 
 <section class="section" id="privacidad">
@@ -429,7 +429,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 <details><summary>¿Shomer cubre todo el contenido?</summary><p>No. La detección puede omitir contenido o cubrir de más. Los videos protegidos y algunos formatos tienen limitaciones.</p></details>
 <details><summary>¿Qué computadoras son compatibles?</summary><p>El proyecto incluye una extensión para Chrome, Edge y Brave en computadora. No contamos todavía con una tabla de dispositivos y versiones comprobados.</p></details>
 <details><summary>¿Cómo detengo Shomer Web?</summary><p>Abre la página de extensiones de tu navegador y desactiva o elimina Shomer Web. También puedes revisar sus ajustes desde el botón de extensiones.</p></details>
-<details><summary>¿Qué hay para mi teléfono?</summary><p>Para Android hay un APK (0.3.0) que filtra todo el teléfono: bloquea sitios para adultos y publicidad en todas las apps y tapa imágenes de personas encima de cualquier app. Es un prototipo aún no probado en dispositivos reales. Para iPhone, Apple solo permite instalar desde TestFlight o App Store, y la app aún no está publicada.</p></details>
+<details><summary>¿Qué hay para mi teléfono?</summary><p>Para Android hay un APK (1.0.0) que filtra todo el teléfono: bloquea sitios para adultos y publicidad en todas las apps y tapa imágenes de personas encima de cualquier app. Para iPhone, Apple solo permite instalar desde TestFlight o App Store, y la app aún no está publicada.</p></details>
 </div>
 </section>
 
