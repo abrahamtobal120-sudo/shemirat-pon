@@ -78,11 +78,22 @@ ui tap '^(Aceptar|OK|Permitir)$' && shot 03-filtro-activo 4
 chrome https://es.wikipedia.org/wiki/Shomer; sleep 3
 app; top; shot 03-filtro-activo 3
 
-# Hacerlo permanente: ajustes de VPN y la pantalla de Shomer con los interruptores
+# Hacerlo permanente. Check what each switch does to the connection with Chrome.
+chrome https://es.wikipedia.org/wiki/Moda; sleep 6; shot v1-chrome-filtro-sin-bloqueo 1
+app; top
 ui tap 'Hacerlo permanente' && shot 04-ajustes-vpn 3
-ui tap '(Configuración|Ajustes|Settings)' 0 && shot 05-vpn-siempre-activa 3 || true
-ui tap 'VPN siempre activa|Always-on VPN' 0 && sleep 2 && ui tap 'Bloquear conexiones|Block connections' 0 && sleep 1 && \
-  { ui tap '^(Activar|Aceptar|OK)$' 0 || true; } && shot 05-vpn-siempre-activa 2
+ui tap '(Configuración|Ajustes|Settings)' 0
+ui tap 'VPN siempre activ' 0 && sleep 2 && shot 05-vpn-siempre-activa 2
+chrome https://es.wikipedia.org/wiki/Alta_costura; sleep 6; shot v2-chrome-siempre-activa 1
+adb shell am start -a android.settings.VPN_SETTINGS >/dev/null; sleep 2
+ui tap '(Configuración|Ajustes|Settings)' 0
+ui tap 'Bloquear conexiones' 0 && sleep 1 && { ui tap '^(Activar|Aceptar|OK)$' 0 || true; } && shot 05b-vpn-bloquear 2
+chrome https://es.wikipedia.org/wiki/Vestido; sleep 8; shot v3-chrome-con-bloqueo 1
+# Turn lockdown off again so the rest (and the image filter demo) has internet.
+adb shell am start -a android.settings.VPN_SETTINGS >/dev/null; sleep 2
+ui tap '(Configuración|Ajustes|Settings)' 0
+ui tap 'Bloquear conexiones' 0 && sleep 1 && shot 05c-vpn-sin-bloquear 1
+for i in 1 2 3; do adb shell input keyevent KEYCODE_BACK; sleep 1; done
 app
 
 # Filtro de imágenes: permiso de superposición y de compartir pantalla
