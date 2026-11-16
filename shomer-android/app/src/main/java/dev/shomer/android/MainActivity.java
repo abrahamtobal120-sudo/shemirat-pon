@@ -162,7 +162,8 @@ public class MainActivity extends Activity {
         });
         layout.addView(always);
         TextView tip = new TextView(this);
-        tip.setText("Para que no se pueda saltar: en Ajustes › VPN › Shomer activa «VPN siempre activa» y «Bloquear conexiones sin VPN». "
+        tip.setText("Para que siga activo tras reiniciar: en Ajustes › VPN › Shomer activa «VPN siempre activa». "
+            + "No actives «Bloquear conexiones sin VPN»: Shomer solo filtra el DNS y ese ajuste deja el teléfono sin internet. "
             + "Si «DNS privado» tiene un nombre de proveedor, cámbialo a «Automático» o «Desactivado». Solo puede haber una VPN activa a la vez.");
         layout.addView(tip);
         filterStatus = new TextView(this);

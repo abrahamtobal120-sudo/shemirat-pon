@@ -8,6 +8,9 @@ on:
       tag:
         description: Release tag del APK
         default: android-v1.0.0
+      run_id:
+        description: (Opcional) ID de una ejecución de «Android APK» para probar su APK firmado antes de publicarlo
+        default: ''
   push:
     branches: [feat/filtro-todo-el-telefono]
     paths:
@@ -16,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   capture:
@@ -31,7 +35,13 @@ jobs:
       - name: Download published APK
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release download "${{ inputs.tag || 'android-v1.0.0' }}" -p '*.apk' -D "$RUNNER_TEMP/apk" && ls -la "$RUNNER_TEMP/apk"
+        run: |
+          if [ -n "${{ inputs.run_id }}" ]; then
+            gh run download "${{ inputs.run_id }}" -n shomer-android-release -D "$RUNNER_TEMP/apk"
+          else
+            gh release download "${{ inputs.tag || 'android-v1.0.0' }}" -p '*.apk' -D "$RUNNER_TEMP/apk"
+          fi
+          ls -la "$RUNNER_TEMP/apk"
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34

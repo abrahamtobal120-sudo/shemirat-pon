@@ -82,15 +82,18 @@ final class CoverOverlay {
 
     @SuppressWarnings("deprecation")
     private static WindowManager.LayoutParams params(Rect r) {
+        int flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+            | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+        // Up to Android 11 a not-touchable cover lets touches reach the app below. From Android 12 the
+        // system clamps the alpha of a not-touchable overlay from another app to 0.8, so the photo shows
+        // through the cover (seen on an Android 14 emulator). There the cover takes the touches that land
+        // on it instead (the system would drop them anyway); touches elsewhere still reach the app.
+        if (Build.VERSION.SDK_INT < 31) flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
             r.width(), r.height(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            // Not touchable: up to Android 11 touches reach the app below; from Android 12 the system
-            // drops touches that land on an opaque cover (untrusted-touch protection).
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            flags,
             PixelFormat.OPAQUE);
         params.gravity = Gravity.TOP | Gravity.START;
         params.x = r.left;

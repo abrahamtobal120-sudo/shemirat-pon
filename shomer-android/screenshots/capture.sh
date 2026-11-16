@@ -65,7 +65,8 @@ ui tap '^(Configuración|Ajustes)$' 0 && shot c4-permitir-fuente 3
 ui tap '(Permitir de esta fuente|Confiar en esta fuente)' 0 && shot c4-permitir-fuente 2
 adb shell input keyevent KEYCODE_BACK; shot c5-instalar 4
 ui tap '^Instalar$' 0 && sleep 15 && shot c6-instalada 2
-adb shell pm list packages | grep -q $PKG || adb install -r "$APK"
+# Make sure the APK under test is the one installed (same signing key, so this is an update).
+adb install -r "$APK"
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null || true
 adb shell am start -W -n $PKG/.MainActivity
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS 2>/dev/null || true
