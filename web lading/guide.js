@@ -1,12 +1,27 @@
 (function () {
   "use strict";
 
-  function detect(userAgent, platform, touchPoints) {
+  const DEVICES = ["iphone", "ipad", "android", "windows", "mac", "chromebook", "linux"];
+  const COMPUTERS = ["windows", "mac", "chromebook", "linux"];
+  const NAMES = { iphone: "iPhone", ipad: "iPad", android: "Android", windows: "Windows", mac: "Mac", chromebook: "Chromebook", linux: "Linux" };
+  const BROWSER_NAMES = { chrome: "Chrome", edge: "Edge", brave: "Brave", firefox: "Firefox", safari: "Safari" };
+  // Browsers offered in the chooser for each computer.
+  const BROWSERS = {
+    windows: ["chrome", "edge", "brave", "firefox"],
+    mac: ["chrome", "edge", "brave", "firefox", "safari"],
+    linux: ["chrome", "brave", "edge", "firefox"],
+    chromebook: ["chrome"]
+  };
+  // Shomer Web only runs on Chromium browsers for now.
+  const SUPPORTED = ["chrome", "edge", "brave"];
+
+  function detect(userAgent, platform, touchPoints, isBrave) {
     const ua = userAgent || "";
     let device = "unknown";
     if (/iPad/i.test(ua) || (/Mac/i.test(platform || "") && touchPoints > 1)) device = "ipad";
-    else if (/iPhone/i.test(ua)) device = "iphone";
+    else if (/iPhone|iPod/i.test(ua)) device = "iphone";
     else if (/Android/i.test(ua)) device = "android";
+    else if (/CrOS/i.test(ua)) device = "chromebook";
     else if (/Windows/i.test(ua)) device = "windows";
     else if (/Macintosh|Mac OS X/i.test(ua)) device = "mac";
     else if (/Linux/i.test(ua)) device = "linux";
@@ -15,6 +30,7 @@
     if (/FBAN|FBAV|Instagram|Line\/|; wv\)|\bwv\b/i.test(ua)) browser = "embedded";
     else if (/EdgA?\/|EdgiOS\//i.test(ua)) browser = "edge";
     else if (/Firefox\/|FxiOS\//i.test(ua)) browser = "firefox";
+    else if (isBrave) browser = "brave";
     else if (/Chrome\/|CriOS\//i.test(ua)) browser = "chrome";
     else if (/Safari\//i.test(ua)) browser = "safari";
     return { device, browser };
@@ -29,60 +45,90 @@
     return match ? match[1].replace(/_/g, ".") : null;
   }
 
-  // Which tab of the install guide to open first.
-  function defaultTab(device) {
-    if (device === "android") return "android";
-    if (device === "iphone" || device === "ipad") return "iphone";
-    return "pc";
+  function isComputer(device) {
+    return COMPUTERS.indexOf(device) !== -1;
   }
 
-  // Desktop browser shown first in the computer guide (Brave reports itself as Chrome).
-  function defaultBrowser(browser) {
-    return browser === "edge" ? "edge" : "chrome";
+  // Device whose guide opens first; unknown visitors get Windows, the most common computer.
+  function defaultDevice(device) {
+    return DEVICES.indexOf(device) !== -1 ? device : "windows";
+  }
+
+  // Panel that holds the guide for a device.
+  function panelFor(device) {
+    if (device === "android") return "android";
+    if (device === "iphone" || device === "ipad") return "apple";
+    return "computer";
+  }
+
+  // Browser preselected in the computer guide: the visitor's own browser when that computer offers it.
+  function defaultBrowser(browser, device) {
+    const offered = BROWSERS[device] || BROWSERS.windows;
+    return offered.indexOf(browser) !== -1 ? browser : "chrome";
+  }
+
+  function isSupported(browser) {
+    return SUPPORTED.indexOf(browser) !== -1;
   }
 
   function extensionsAddress(browser) {
     return browser === "edge" ? "edge://extensions" : browser === "brave" ? "brave://extensions" : "chrome://extensions";
   }
 
-  if (typeof module !== "undefined" && module.exports) module.exports = { detect, systemVersion, defaultTab, defaultBrowser, extensionsAddress };
+  const api = { detect, systemVersion, isComputer, defaultDevice, panelFor, defaultBrowser, isSupported, extensionsAddress, BROWSERS };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document === "undefined") return;
 
-  const found = detect(navigator.userAgent, navigator.platform, navigator.maxTouchPoints);
+  const found = detect(navigator.userAgent, navigator.platform, navigator.maxTouchPoints, !!navigator.brave);
+  const state = { device: defaultDevice(found.device), browser: "chrome" };
 
-  // Tabs
-  const tabs = Array.prototype.slice.call(document.querySelectorAll("[role=tab]"));
-  function selectTab(name) {
-    tabs.forEach(function (tab) {
-      const on = tab.dataset.tab === name;
-      tab.setAttribute("aria-selected", on ? "true" : "false");
-      tab.tabIndex = on ? 0 : -1;
-      document.getElementById("panel-" + tab.dataset.tab).hidden = !on;
-    });
+  function matches(list, value) {
+    return (list || "").split(/\s+/).indexOf(value) !== -1;
   }
-  tabs.forEach(function (tab, i) {
-    tab.addEventListener("click", function () { selectTab(tab.dataset.tab); });
-    tab.addEventListener("keydown", function (event) {
-      const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
-      if (!step) return;
-      const next = tabs[(i + step + tabs.length) % tabs.length];
-      selectTab(next.dataset.tab);
-      next.focus();
+
+  function render() {
+    const panel = panelFor(state.device);
+    const supported = isSupported(state.browser);
+    document.querySelectorAll("[data-device]").forEach(function (button) {
+      button.setAttribute("aria-pressed", button.dataset.device === state.device ? "true" : "false");
+    });
+    document.querySelectorAll("[data-browser]").forEach(function (chip) {
+      chip.setAttribute("aria-pressed", chip.dataset.browser === state.browser ? "true" : "false");
+    });
+    document.querySelectorAll("[data-panel]").forEach(function (node) { node.hidden = node.dataset.panel !== panel; });
+    document.querySelectorAll("[data-only]").forEach(function (node) { node.hidden = !matches(node.dataset.only, state.device); });
+    document.querySelectorAll("[data-only-browser]").forEach(function (node) { node.hidden = !matches(node.dataset.onlyBrowser, state.browser); });
+    document.querySelectorAll("[data-when-supported]").forEach(function (node) { node.hidden = !supported; });
+    document.querySelectorAll("[data-when-unsupported]").forEach(function (node) { node.hidden = supported; });
+    document.querySelectorAll("[data-device-name]").forEach(function (node) { node.textContent = NAMES[state.device]; });
+    document.querySelectorAll("[data-browser-name]").forEach(function (node) { node.textContent = BROWSER_NAMES[state.browser]; });
+    document.querySelectorAll(".addr").forEach(function (node) { node.textContent = extensionsAddress(state.browser); });
+  }
+
+  function selectDevice(device) {
+    state.device = device;
+    state.browser = defaultBrowser(state.browser, device);
+    render();
+  }
+
+  document.querySelectorAll("[data-device]").forEach(function (button) {
+    button.addEventListener("click", function () { selectDevice(button.dataset.device); });
+  });
+  document.querySelectorAll("[data-browser]").forEach(function (chip) {
+    chip.addEventListener("click", function () { state.browser = chip.dataset.browser; render(); });
+  });
+  // Links elsewhere on the page that jump to a device's guide ("computer" means the visitor's computer).
+  document.querySelectorAll("[data-open-device]").forEach(function (link) {
+    link.addEventListener("click", function () {
+      const wanted = link.dataset.openDevice;
+      if (wanted === "computer") selectDevice(isComputer(found.device) ? found.device : "windows");
+      else if (wanted === "apple") selectDevice(found.device === "ipad" ? "ipad" : "iphone");
+      else selectDevice(wanted);
     });
   });
-  document.querySelectorAll("[data-open-tab]").forEach(function (link) {
-    link.addEventListener("click", function () { selectTab(link.dataset.openTab); });
-  });
-  selectTab(defaultTab(found.device));
 
-  // Browser chooser inside the computer guide
-  const chips = Array.prototype.slice.call(document.querySelectorAll("[data-browser]"));
-  function selectBrowser(name) {
-    chips.forEach(function (chip) { chip.setAttribute("aria-pressed", chip.dataset.browser === name ? "true" : "false"); });
-    document.querySelectorAll(".addr").forEach(function (node) { node.textContent = extensionsAddress(name); });
-  }
-  chips.forEach(function (chip) { chip.addEventListener("click", function () { selectBrowser(chip.dataset.browser); }); });
-  selectBrowser(defaultBrowser(found.browser));
+  state.browser = defaultBrowser(found.browser, state.device);
+  render();
 
   // Copy buttons
   document.querySelectorAll("[data-copy]").forEach(function (button) {
@@ -99,7 +145,8 @@
 
   const note = document.getElementById("detected");
   if (note) {
-    const names = { windows: "una computadora Windows", mac: "una Mac", linux: "una computadora Linux", android: "un teléfono Android", iphone: "un iPhone", ipad: "un iPad" };
-    note.textContent = names[found.device] ? "Parece que estás en " + names[found.device] + ". Abrimos la guía que te corresponde; puedes cambiarla arriba." : "Elige tu dispositivo arriba.";
+    note.textContent = DEVICES.indexOf(found.device) !== -1
+      ? "Parece que estás en " + (found.device === "android" ? "un teléfono Android" : found.device === "chromebook" ? "un Chromebook" : found.device === "linux" ? "una computadora Linux" : found.device === "windows" ? "una computadora Windows" : "un " + NAMES[found.device]) + ", así que ya lo elegimos. Si no es así, toca tu dispositivo arriba."
+      : "Toca tu dispositivo arriba para ver sus pasos.";
   }
 })();
