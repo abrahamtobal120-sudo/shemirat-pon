@@ -23,8 +23,7 @@ def nodes(tries=15):
 def find(pattern):
     rx = re.compile(pattern, re.I)
     for n in nodes():
-        label = (n.get("text") or "") + "|" + (n.get("content-desc") or "")
-        if rx.search(label):
+        if any(rx.search(v) for v in (n.get("text"), n.get("content-desc")) if v):
             x1, y1, x2, y2 = map(int, re.findall(r"\d+", n.get("bounds")))
             return (x1 + x2) // 2, (y1 + y2) // 2
     return None

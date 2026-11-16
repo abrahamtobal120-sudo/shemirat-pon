@@ -9,10 +9,12 @@ on:
       - feat/filtro-todo-el-telefono
     paths:
       - 'shomer-android/**'
+      - '!shomer-android/screenshots/**'
       - '.github/workflows/android-debug.yml'
   pull_request:
     paths:
       - 'shomer-android/**'
+      - '!shomer-android/screenshots/**'
       - '.github/workflows/android-debug.yml'
 
 permissions:

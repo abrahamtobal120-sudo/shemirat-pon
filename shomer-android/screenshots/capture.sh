@@ -17,6 +17,14 @@ demo() {
   adb shell am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e mobile show -e datatype none -e level 4 >/dev/null
   adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false >/dev/null
 }
+app() {  # back to Shomer without restarting it (that would stop the filter)
+  for i in 1 2 3 4 5; do
+    adb shell dumpsys activity activities | grep -E "topResumedActivity|mResumedActivity" | grep -q "$PKG/.MainActivity" && break
+    adb shell input keyevent KEYCODE_BACK; sleep 1.5
+  done
+  adb shell dumpsys activity activities | grep -E "topResumedActivity|mResumedActivity" | grep -q "$PKG/.MainActivity" || adb shell am start -n $PKG/.MainActivity >/dev/null
+  sleep 1.5
+}
 top() { adb shell 'input swipe 540 600 540 2000 200; input swipe 540 600 540 2000 200'; }
 
 adb wait-for-device
@@ -50,20 +58,20 @@ ui tap '^Activar filtro$' && shot 02-permiso-vpn 3
 ui tap '^(Aceptar|OK|Permitir)$' && shot 03-filtro-activo 4
 # Hold the filter for a bit so the query counters move, then capture again.
 adb shell am start -a android.intent.action.VIEW -d https://example.com >/dev/null 2>&1; sleep 6
-adb shell am start -n $PKG/.MainActivity >/dev/null; top; shot 03-filtro-activo 3
+app; top; shot 03-filtro-activo 3
 
 # Hacerlo permanente: ajustes de VPN y la pantalla de Shomer con los interruptores
 ui tap 'Hacerlo permanente' && shot 04-ajustes-vpn 3
 ui tap '(Configuración|Ajustes|Settings)' 0 && shot 05-vpn-siempre-activa 3 || true
 ui tap 'VPN siempre activa|Always-on VPN' 0 && sleep 2 && ui tap 'Bloquear conexiones|Block connections' 0 && sleep 1 && \
   { ui tap '^(Activar|Aceptar|OK)$' 0 || true; } && shot 05-vpn-siempre-activa 2
-adb shell am start -n $PKG/.MainActivity >/dev/null; sleep 2
+app
 
 # Filtro de imágenes: permiso de superposición y de compartir pantalla
 ui tap 'Mostrar sobre otras apps' && shot 06-mostrar-sobre-apps 3
 ui tap 'Shomer' 0 >/dev/null 2>&1; ui tap '(Permitir|Allow)' 0 && shot 06-mostrar-sobre-apps 2
-adb shell am start -n $PKG/.MainActivity >/dev/null; sleep 2
+app
 ui tap 'Activar filtro de imágenes' && shot 07-compartir-pantalla 3
-ui tap '^(Iniciar|Empezar|Start|Comenzar|Compartir|Share screen)' 0 && shot 08-imagenes-activo 4
-adb shell am start -n $PKG/.MainActivity >/dev/null; top; shot 08-app-ambos-filtros 3
+ui tap '^(Iniciar|Empezar|Start|Comenzar|Compartir|Share screen)' 0 && shot 08-imagenes-activo 5
+app; top; shot 09-app-ambos-filtros 3
 ls -la "$OUT"
