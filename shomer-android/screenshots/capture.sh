@@ -31,9 +31,14 @@ adb wait-for-device
 until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do sleep 2; done
 # Wait until shared storage is mounted (adb push to Download fails right after boot).
 for i in $(seq 1 30); do adb shell touch /sdcard/Download/.ok 2>/dev/null && break; sleep 3; done
-# Spanish UI, clean status bar (9:41, full battery and signal, no notifications).
-adb shell settings put system system_locales es-MX || true
-adb shell cmd locale set-system-locales es-MX 2>/dev/null || true
+# Spanish UI: set the locale as root and restart the framework, then wait for it again.
+adb root >/dev/null; sleep 3; adb wait-for-device
+adb shell setprop persist.sys.locale es-MX
+adb shell setprop ctl.restart zygote
+sleep 10; adb wait-for-device
+until [ "$(adb shell getprop sys.boot_completed | tr -d '')" = 1 ] && adb shell pm path android >/dev/null 2>&1; do sleep 2; done
+sleep 15
+for i in $(seq 1 30); do adb shell touch /sdcard/Download/.ok 2>/dev/null && break; sleep 3; done
 adb shell settings put global sysui_demo_allowed 1
 sleep 15; demo
 adb shell settings put secure show_ime_with_hard_keyboard 0
@@ -50,7 +55,8 @@ chrome() { adb shell am start -a android.intent.action.VIEW -d "$1" -p $CHROME >
 chrome "$URL"
 ui tap '(Descargar de todos modos|Descargar de todas formas|^Descargar$)' 0 && shot c1-descargar 2
 for i in $(seq 1 60); do  # wait for the 112 MB download
-  size=$(adb shell stat -c %s /sdcard/Download/shomer-android-1.0.0.apk 2>/dev/null | tr -d '')
+  size=$(adb shell stat -c %s /sdcard/Download/shomer-android-1.0.0.apk 2>/dev/null | tr -d '
+')
   [ "${size:-0}" -gt 110000000 ] && break; sleep 3
 done
 shot c2-descargado 3

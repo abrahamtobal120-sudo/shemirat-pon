@@ -39,7 +39,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -change-locale es-MX
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           script: APK=$(ls $RUNNER_TEMP/apk/*.apk | head -1) OUT=$GITHUB_WORKSPACE/shots bash shomer-android/screenshots/capture.sh
       - uses: actions/upload-artifact@v4
         if: always()
