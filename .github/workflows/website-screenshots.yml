@@ -1,0 +1,38 @@
+name: Website screenshots
+
+# Real screenshots of Chrome's extensions page and of Shomer Web for the install guide.
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/filtro-todo-el-telefono]
+    paths:
+      - 'web lading/tools/capturas-chrome.mjs'
+      - '.github/workflows/website-screenshots.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  chrome:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        working-directory: web lading/tools
+        run: |
+          npm init -y >/dev/null
+          npm i playwright@1
+          npx playwright install --with-deps chromium
+          sudo apt-get install -y fonts-noto-color-emoji fonts-noto-core
+      - name: Capture
+        working-directory: web lading/tools
+        run: mkdir -p "$GITHUB_WORKSPACE/shots" && xvfb-run -a node capturas-chrome.mjs "$GITHUB_WORKSPACE/shomer-web" "$GITHUB_WORKSPACE/shots"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: chrome-screenshots
+          path: shots/
