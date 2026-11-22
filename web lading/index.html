@@ -114,11 +114,25 @@ h1 span{background:linear-gradient(90deg,#7fd0ff,#4fb3f0);-webkit-background-cli
 @media(max-width:860px){.split{grid-template-columns:1fr;gap:36px}}
 /* Install guide */
 .guide{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
-.picker{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:14px;background:#eef4f9;border-bottom:1px solid var(--line)}
-.picker button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px solid transparent;border-radius:16px;padding:16px 6px;background:#fff;color:var(--ink);font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 1px 3px #0f2a4012;transition:border-color .15s,background .15s,transform .15s}
+.choose{padding:22px 24px 24px;background:#eef4f9;border-bottom:1px solid var(--line)}
+.choose-label{display:flex;align-items:center;gap:10px;font-weight:750;font-size:15px;margin:0 0 12px}
+.choose-label b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;font-size:13px}
+.picker{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.picker button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px solid transparent;border-radius:16px;padding:18px 8px;background:#fff;color:var(--ink);font-weight:750;font-size:17px;cursor:pointer;box-shadow:0 1px 3px #0f2a4012;transition:border-color .15s,background .15s,transform .15s}
+.picker button small{font-weight:500;font-size:12.5px;color:var(--muted)}
 .picker button:hover{border-color:#b9d4e8;transform:translateY(-1px)}
-.picker button .icon{width:30px;height:30px;color:var(--blue)}
+.picker button .icon{width:32px;height:32px;color:var(--blue);margin-bottom:4px}
 .picker button[aria-pressed=true]{border-color:var(--blue);background:#e8f2fa;color:var(--blue);box-shadow:0 6px 16px #1d6fa826}
+.sub{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px;padding-top:20px;border-top:1px dashed #c9d9e6}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{display:inline-flex;align-items:center;gap:8px;border:2px solid #d5e1ea;background:#fff;border-radius:12px;padding:10px 16px;font-weight:700;font-size:15px;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+.seg button .icon{width:18px;height:18px;color:var(--blue)}
+.seg button:hover{border-color:#b9d4e8}
+.seg button[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:#fff}
+.seg button[aria-pressed=true] .icon{color:#fff}
+.summary{display:flex;align-items:center;gap:10px;margin:0;padding:14px 24px;border-bottom:1px solid var(--line);font-size:15.5px;color:var(--muted)}
+.summary .icon{color:var(--green)}.summary strong{color:var(--ink)}
+@media(max-width:860px){.sub{grid-template-columns:1fr}}
 [hidden]{display:none!important}
 .panel{padding:36px 40px 40px}
 .panel>p.lead2{color:var(--muted);font-size:16.5px;max-width:720px}
@@ -173,8 +187,8 @@ footer a{color:var(--muted);text-decoration:none;margin-left:20px}footer a:hover
 
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e19a4a;outline-offset:3px;border-radius:6px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.card{transform:none}}
-@media(max-width:960px){.picker{grid-template-columns:repeat(4,1fr)}.hero{grid-template-columns:1fr;gap:56px;padding:72px 0 100px}.hero-shots{margin:0 auto;max-width:560px}.hero-shots .hero-phone{left:-6px}.cards{grid-template-columns:1fr 1fr}}
-@media(max-width:700px){kbd{white-space:normal}.wrap{padding:0 20px}.navlinks a:not(.button){display:none}.strip,.cards,.cards.two{grid-template-columns:1fr}.section{padding:72px 0 0}.panel{padding:24px 18px 28px}.picker{grid-template-columns:repeat(4,1fr);gap:8px;padding:10px}.picker button{font-size:13.5px;padding:12px 4px}.picker button .icon{width:26px;height:26px}.steps>li{grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px}.steps>li::before{width:36px;height:36px;font-size:16px}.cta{flex-direction:column;align-items:flex-start;padding:36px 28px}.faq{padding:8px 20px}footer a{margin:0 16px 0 0}}
+@media(max-width:960px){.hero{grid-template-columns:1fr;gap:56px;padding:72px 0 100px}.hero-shots{margin:0 auto;max-width:560px}.hero-shots .hero-phone{left:-6px}.cards{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){kbd{white-space:normal}.wrap{padding:0 20px}.navlinks a:not(.button){display:none}.strip,.cards,.cards.two{grid-template-columns:1fr}.section{padding:72px 0 0}.panel{padding:24px 18px 28px}.hide-sm{display:none}.choose{padding:16px 14px 18px}.summary{padding:12px 16px}.picker{grid-template-columns:1fr 1fr;gap:10px}.picker button{font-size:16px;padding:14px 6px}.picker button .icon{width:28px;height:28px}.seg button{padding:9px 12px;font-size:14.5px}.steps>li{grid-template-columns:36px minmax(0,1fr);gap:12px;padding:16px}.steps>li::before{width:36px;height:36px;font-size:16px}.cta{flex-direction:column;align-items:flex-start;padding:36px 28px}.faq{padding:8px 20px}footer a{margin:0 16px 0 0}}
 </style>
 </head>
 <body>
@@ -266,22 +280,28 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #e1
 </section>
 
 <section class="section" id="instalacion">
-<div class="head center"><span class="eyebrow">Guía de instalación</span><h2>¿Qué dispositivo tienes?</h2><p class="intro">Tócalo y te mostramos solo los pasos para ese dispositivo.</p></div>
+<div class="head center"><span class="eyebrow">Guía de instalación</span><h2>¿Dónde quieres instalar Shomer?</h2><p class="intro">Elige tu dispositivo<span class="hide-sm"> y, si es una computadora, tu navegador</span>. Te mostramos solo los pasos que te tocan.</p></div>
 <div class="guide">
+<div class="choose">
+<p class="choose-label"><b>1</b> Tu dispositivo</p>
 <div class="picker" role="group" aria-label="Elige tu dispositivo">
-<button type="button" data-device="iphone" aria-pressed="false"><svg class="icon"><use href="#i-apple"/></svg>iPhone</button>
-<button type="button" data-device="ipad" aria-pressed="false"><svg class="icon"><use href="#i-tablet"/></svg>iPad</button>
-<button type="button" data-device="android" aria-pressed="false"><svg class="icon"><use href="#i-android"/></svg>Android</button>
-<button type="button" data-device="windows" aria-pressed="true"><svg class="icon"><use href="#i-windows"/></svg>Windows</button>
-<button type="button" data-device="mac" aria-pressed="false"><svg class="icon"><use href="#i-laptop"/></svg>Mac</button>
-<button type="button" data-device="chromebook" aria-pressed="false"><svg class="icon"><use href="#i-chromebook"/></svg>Chromebook</button>
-<button type="button" data-device="linux" aria-pressed="false"><svg class="icon"><use href="#i-terminal"/></svg>Linux</button>
+<button type="button" data-kind="android" aria-pressed="false"><svg class="icon"><use href="#i-android"/></svg><span>Android</span><small>Teléfono o tablet</small></button>
+<button type="button" data-kind="iphone" aria-pressed="false"><svg class="icon"><use href="#i-apple"/></svg><span>iPhone</span><small>Filtro de Apple</small></button>
+<button type="button" data-kind="ipad" aria-pressed="false"><svg class="icon"><use href="#i-tablet"/></svg><span>iPad</span><small>Filtro de Apple</small></button>
+<button type="button" data-kind="computer" aria-pressed="true"><svg class="icon"><use href="#i-laptop"/></svg><span>Computadora</span><small>Extensión del navegador</small></button>
 </div>
+<div class="sub" data-kind-only="computer">
+<div><p class="choose-label"><b>2</b> Tu computadora</p>
+<div class="seg" role="group" aria-label="Tu computadora"><button type="button" data-device="windows" aria-pressed="true"><svg class="icon"><use href="#i-windows"/></svg>Windows</button><button type="button" data-device="mac" aria-pressed="false"><svg class="icon"><use href="#i-laptop"/></svg>Mac</button><button type="button" data-device="chromebook" aria-pressed="false"><svg class="icon"><use href="#i-chromebook"/></svg>Chromebook</button><button type="button" data-device="linux" aria-pressed="false"><svg class="icon"><use href="#i-terminal"/></svg>Linux</button></div></div>
+<div data-only="windows mac linux"><p class="choose-label"><b>3</b> Tu navegador</p>
+<div class="seg" role="group" aria-label="Tu navegador"><button type="button" data-browser="chrome" aria-pressed="true"><svg class="icon"><use href="#i-browser"/></svg>Chrome</button><button type="button" data-browser="edge" aria-pressed="false"><svg class="icon"><use href="#i-browser"/></svg>Edge</button><button type="button" data-browser="brave" aria-pressed="false"><svg class="icon"><use href="#i-browser"/></svg>Brave</button><button type="button" data-browser="firefox" aria-pressed="false"><svg class="icon"><use href="#i-browser"/></svg>Firefox</button><button type="button" data-browser="safari" aria-pressed="false" data-only="mac"><svg class="icon"><use href="#i-browser"/></svg>Safari</button></div></div>
+</div>
+</div>
+<p class="summary"><svg class="icon"><use href="#i-shield"/></svg><span>Tu guía: <strong id="summary"></strong></span></p>
 <p id="detected" class="detected"></p>
 
 <!-- Computadoras -->
 <div class="panel" data-panel="computer">
-<div class="chips" role="group" aria-label="Tu navegador" data-only="windows mac linux"><span>¿Qué navegador usas?</span><button type="button" data-browser="chrome" aria-pressed="true">Chrome</button><button type="button" data-browser="edge" aria-pressed="false">Edge</button><button type="button" data-browser="brave" aria-pressed="false">Brave</button><button type="button" data-browser="firefox" aria-pressed="false">Firefox</button><button type="button" data-browser="safari" aria-pressed="false" data-only="mac">Safari</button></div>
 <p class="lead2" data-only="chromebook">En el Chromebook Shomer se instala en Chrome, el navegador que ya trae. Toma unos 3 minutos.</p>
 
 <div class="box warn2" data-when-unsupported style="margin:0 0 8px"><svg class="icon"><use href="#i-alert"/></svg><div><strong>Shomer todavía no funciona en <span data-browser-name>Firefox</span>.</strong><p>Por ahora solo funciona en Chrome, Edge o Brave. <span data-only="windows">Edge ya viene instalado en tu computadora con Windows: ábrelo y elige <kbd>Edge</kbd> arriba.</span><span data-only="mac linux">Instala Chrome gratis y luego elige <kbd>Chrome</kbd> arriba.</span></p><a class="button small" href="https://www.google.com/chrome/" target="_blank" rel="noopener" data-only="mac linux">Descargar Chrome</a></div></div>

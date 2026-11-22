@@ -61,3 +61,13 @@ test("cada navegador usa su dirección de extensiones", () => {
   assert.equal(extensionsAddress("edge"), "edge://extensions");
   assert.equal(extensionsAddress("brave"), "brave://extensions");
 });
+
+test("las computadoras se agrupan en «Computadora» y el resumen dice qué guía se ve", () => {
+  const { kindFor, summary } = require("./guide.js");
+  for (const device of ["windows", "mac", "linux", "chromebook"]) assert.equal(kindFor(device), "computer");
+  assert.equal(kindFor("android"), "android");
+  assert.equal(kindFor("ipad"), "ipad");
+  assert.equal(summary("windows", "edge"), "Computadora Windows · Edge");
+  assert.equal(summary("chromebook", "chrome"), "Chromebook · Chrome");
+  assert.equal(summary("iphone", "safari"), "iPhone · filtro de Apple");
+});

@@ -71,16 +71,31 @@
     return SUPPORTED.indexOf(browser) !== -1;
   }
 
+  // Top-level choice in the picker: every computer falls under "computer".
+  function kindFor(device) {
+    return isComputer(device) ? "computer" : device;
+  }
+
+  // One-line description of the guide being shown.
+  function summary(device, browser) {
+    if (device === "android") return "Android (teléfono o tablet)";
+    if (device === "iphone" || device === "ipad") return NAMES[device] + " · filtro de Apple";
+    if (device === "chromebook") return "Chromebook · Chrome";
+    return "Computadora " + NAMES[device] + " · " + BROWSER_NAMES[browser];
+  }
+
   function extensionsAddress(browser) {
     return browser === "edge" ? "edge://extensions" : browser === "brave" ? "brave://extensions" : "chrome://extensions";
   }
 
-  const api = { detect, systemVersion, isComputer, defaultDevice, panelFor, defaultBrowser, isSupported, extensionsAddress, BROWSERS };
+  const api = { detect, systemVersion, isComputer, defaultDevice, panelFor, defaultBrowser, isSupported, extensionsAddress, kindFor, summary, BROWSERS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (typeof document === "undefined") return;
 
   const found = detect(navigator.userAgent, navigator.platform, navigator.maxTouchPoints, !!navigator.brave);
   const state = { device: defaultDevice(found.device), browser: "chrome" };
+  // Computer shown when the visitor taps "Computadora": theirs if they are on one, else the last one picked.
+  let lastComputer = isComputer(found.device) ? found.device : "windows";
 
   function matches(list, value) {
     return (list || "").split(/\s+/).indexOf(value) !== -1;
@@ -89,9 +104,16 @@
   function render() {
     const panel = panelFor(state.device);
     const supported = isSupported(state.browser);
+    const kind = kindFor(state.device);
+    document.querySelectorAll("[data-kind]").forEach(function (button) {
+      button.setAttribute("aria-pressed", button.dataset.kind === kind ? "true" : "false");
+    });
+    document.querySelectorAll("[data-kind-only]").forEach(function (node) { node.hidden = node.dataset.kindOnly !== kind; });
     document.querySelectorAll("[data-device]").forEach(function (button) {
       button.setAttribute("aria-pressed", button.dataset.device === state.device ? "true" : "false");
     });
+    const line = document.getElementById("summary");
+    if (line) line.textContent = summary(state.device, state.browser);
     document.querySelectorAll("[data-browser]").forEach(function (chip) {
       chip.setAttribute("aria-pressed", chip.dataset.browser === state.browser ? "true" : "false");
     });
@@ -106,6 +128,7 @@
   }
 
   function selectDevice(device) {
+    if (isComputer(device)) lastComputer = device;
     state.device = device;
     state.browser = defaultBrowser(state.browser, device);
     render();
@@ -114,6 +137,11 @@
   document.querySelectorAll("[data-device]").forEach(function (button) {
     button.addEventListener("click", function () { selectDevice(button.dataset.device); });
   });
+  document.querySelectorAll("[data-kind]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      selectDevice(button.dataset.kind === "computer" ? lastComputer : button.dataset.kind);
+    });
+  });
   document.querySelectorAll("[data-browser]").forEach(function (chip) {
     chip.addEventListener("click", function () { state.browser = chip.dataset.browser; render(); });
   });
@@ -121,7 +149,7 @@
   document.querySelectorAll("[data-open-device]").forEach(function (link) {
     link.addEventListener("click", function () {
       const wanted = link.dataset.openDevice;
-      if (wanted === "computer") selectDevice(isComputer(found.device) ? found.device : "windows");
+      if (wanted === "computer") selectDevice(lastComputer);
       else if (wanted === "apple") selectDevice(found.device === "ipad" ? "ipad" : "iphone");
       else selectDevice(wanted);
     });
@@ -146,7 +174,7 @@
   const note = document.getElementById("detected");
   if (note) {
     note.textContent = DEVICES.indexOf(found.device) !== -1
-      ? "Parece que estás en " + (found.device === "android" ? "un teléfono Android" : found.device === "chromebook" ? "un Chromebook" : found.device === "linux" ? "una computadora Linux" : found.device === "windows" ? "una computadora Windows" : "un " + NAMES[found.device]) + ", así que ya lo elegimos. Si no es así, toca tu dispositivo arriba."
-      : "Toca tu dispositivo arriba para ver sus pasos.";
+      ? "Parece que estás en " + (found.device === "android" ? "un teléfono Android" : found.device === "chromebook" ? "un Chromebook" : found.device === "linux" ? "una computadora Linux" : found.device === "windows" ? "una computadora Windows" : "un " + NAMES[found.device]) + ", así que ya lo elegimos. Si no es así, cámbialo arriba."
+      : "Elige tu dispositivo arriba para ver sus pasos.";
   }
 })();
