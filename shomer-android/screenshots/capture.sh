@@ -111,4 +111,10 @@ adb shell input swipe 540 1600 540 900 600; sleep 12
 shot 10-imagen-tapada 1
 adb shell input swipe 540 1600 540 1000 600; sleep 12
 shot 11-imagen-tapada 1
+
+# Batería: que Android no cierre Shomer (Ajustes › Apps › Shomer › Uso de batería de la app).
+adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:$PKG >/dev/null; sleep 3
+demo; shot b1-info-app 2
+ui tap '(Uso de batería|Batería)' && shot b2-bateria 3
+ui tap '^Sin restricciones$' 0 && shot b3-sin-restricciones 2
 ls -la "$OUT"
