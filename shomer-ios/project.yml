@@ -11,9 +11,18 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.shomer.ios
+        MARKETING_VERSION: "0.2.0"
+        CURRENT_PROJECT_VERSION: "2"
+        # Firma: escribe tu Team ID de Apple aquí (o pásalo a xcodebuild con DEVELOPMENT_TEAM=XXXXXXXXXX).
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Shomer
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         SWIFT_VERSION: "5.0"
     entitlements:
       path: Shomer.entitlements

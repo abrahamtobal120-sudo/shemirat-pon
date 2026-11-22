@@ -1,0 +1,33 @@
+name: iOS Settings screenshots
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/filtro-todo-el-telefono
+    paths:
+      - 'shomer-ios/screenshots/**'
+      - '.github/workflows/ios-screenshots.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  shots:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate project
+        working-directory: shomer-ios/screenshots
+        run: xcodegen generate
+      - name: Capture Settings screenshots
+        run: bash shomer-ios/screenshots/run.sh "$RUNNER_TEMP/shots"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-settings-screenshots
+          path: ${{ runner.temp }}/shots
+          if-no-files-found: warn

@@ -1,0 +1,42 @@
+name: SettingsShots
+options:
+  bundleIdPrefix: dev.shomer.shots
+settings:
+  base:
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+    SWIFT_VERSION: "5.0"
+    GENERATE_INFOPLIST_FILE: YES
+targets:
+  ShotsHost:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources: [HostApp]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.shomer.shots.host
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+  SettingsShotsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources: [SettingsShotsUITests]
+    dependencies:
+      - target: ShotsHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.shomer.shots.uitests
+        TEST_TARGET_NAME: ShotsHost
+        TARGETED_DEVICE_FAMILY: "1,2"
+schemes:
+  SettingsShots:
+    build:
+      targets:
+        ShotsHost: all
+        SettingsShotsUITests: [test]
+    test:
+      targets:
+        - SettingsShotsUITests

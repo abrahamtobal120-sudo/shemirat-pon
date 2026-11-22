@@ -23,6 +23,19 @@
           "value": "attachment; filename=\"shomer-web.zip\""
         }
       ]
+    },
+    {
+      "source": "/downloads/(.*)\\.apk",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/vnd.android.package-archive"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment"
+        }
+      ]
     }
   ]
 }

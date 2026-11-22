@@ -1,0 +1,51 @@
+name: iOS app (Family Controls)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - feat/filtro-todo-el-telefono
+    paths:
+      - 'shomer-ios/**'
+      - '.github/workflows/ios-app.yml'
+  pull_request:
+    paths:
+      - 'shomer-ios/**'
+      - '.github/workflows/ios-app.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        working-directory: shomer-ios
+        run: xcodegen generate
+      - name: Build without signing (compile check)
+        working-directory: shomer-ios
+        run: |
+          xcodebuild -version
+          xcodebuild -project Shomer.xcodeproj -scheme Shomer \
+            -destination 'generic/platform=iOS' -derivedDataPath "$RUNNER_TEMP/shomer-ios" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: Package unsigned app for re-signing
+        run: |
+          app="$RUNNER_TEMP/shomer-ios/Build/Products/Debug-iphoneos/Shomer.app"
+          test -d "$app"
+          mkdir -p "$RUNNER_TEMP/pkg/Payload"
+          ditto "$app" "$RUNNER_TEMP/pkg/Payload/Shomer.app"
+          (cd "$RUNNER_TEMP/pkg" && zip -qry "$GITHUB_WORKSPACE/shomer-ios-sin-firmar.ipa" Payload)
+          shasum -a 256 shomer-ios-sin-firmar.ipa > shomer-ios-sin-firmar.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shomer-ios-sin-firmar
+          path: |
+            shomer-ios-sin-firmar.ipa
+            shomer-ios-sin-firmar.sha256
+          if-no-files-found: error

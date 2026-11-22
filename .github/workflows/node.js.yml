@@ -22,6 +22,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: Test installation guide
       run: node --test "web lading/guide.test.js"
+    - name: Test Safari preparation
+      run: python3 -m unittest discover -s shomer-safari -p 'test_*.py'
     - name: Build landing page and verify download
       run: |
         python3 "web lading/build.py"

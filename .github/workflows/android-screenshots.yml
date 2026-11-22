@@ -1,0 +1,58 @@
+name: Android screenshots
+
+# Installs the published APK on an Android emulator, walks through the install and the app,
+# and uploads the real screenshots used on the website.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag del APK
+        default: android-v1.0.1
+      run_id:
+        description: (Opcional) ID de una ejecución de «Android APK» para probar su APK firmado antes de publicarlo
+        default: ''
+  push:
+    branches: [feat/filtro-todo-el-telefono]
+    paths:
+      - 'shomer-android/screenshots/**'
+      - '.github/workflows/android-screenshots.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Download published APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "${{ inputs.run_id }}" ]; then
+            gh run download "${{ inputs.run_id }}" -n shomer-android-release -D "$RUNNER_TEMP/apk"
+          else
+            gh release download "${{ inputs.tag || 'android-v1.0.1' }}" -p '*.apk' -D "$RUNNER_TEMP/apk"
+          fi
+          ls -la "$RUNNER_TEMP/apk"
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: APK=$(ls $RUNNER_TEMP/apk/*.apk | head -1) OUT=$GITHUB_WORKSPACE/shots bash shomer-android/screenshots/capture.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-screenshots
+          path: shots/
