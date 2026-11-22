@@ -112,12 +112,15 @@ final class SettingsShotsUITests: XCTestCase {
     func settle(_ e: XCUIElement, main: Bool = false) {
         let screenH = app.frame.height
         for _ in 0..<3 {
-            if e.exists && e.frame.maxY > screenH * 0.85, let c = container(main: main) { drag(c, up: true) } else { break }
+            if e.exists && e.frame.maxY > screenH * 0.95, let c = container(main: main) { drag(c, up: true) } else { break }
         }
     }
 
     func back() {
-        let b = app.navigationBars.buttons.element(boundBy: 0)
+        // On iPad pick the detail (rightmost) navigation bar, never the sidebar.
+        let bars = app.navigationBars.allElementsBoundByIndex.filter { $0.exists && $0.frame.width > 100 }
+        guard let bar = bars.max(by: { $0.frame.minX < $1.frame.minX }) else { return }
+        let b = bar.buttons.element(boundBy: 0)
         if b.exists && b.isHittable {
             note("back '\(b.label)'")
             b.tap()
@@ -132,11 +135,11 @@ final class SettingsShotsUITests: XCTestCase {
     let onboarding = ["Activar Tiempo en pantalla", "Activar Tiempo de pantalla", "Turn On Screen Time",
                       "Continuar", "Continue",
                       "Este es mi iPhone", "Este es mi iPad", "This is My iPhone", "This is My iPad"]
-    let contentRestr = ["Restricciones de contenido", "Content Restrictions",
+    let contentRestr = ["App Store, contenido, Internet y juegos", "Restricciones de contenido", "Content Restrictions",
                         "Tiendas, web, Siri y Game Center", "Store, Web, Siri & Game Center Content"]
-    let webContent = ["Contenido web", "Web Content"]
+    let webContent = ["Contenido web", "Contenido de Internet", "Internet", "Sitios web", "Web Content"]
     let limitAdult = ["Limitar sitios web para adultos", "Limitar sitios para adultos", "Limit Adult Websites"]
-    let passcode = ["Usar código de Tiempo en pantalla", "Usar código de Tiempo de pantalla",
+    let passcode = ["Bloquear configuración", "Usar código de Tiempo en pantalla", "Usar código de Tiempo de pantalla",
                     "Usar código para Tiempo en pantalla", "Use Screen Time Passcode"]
 
     func testCaptureScreenTimeFlow() {
