@@ -97,6 +97,13 @@ ui tap 'Bloquear conexiones' 0 && sleep 1 && shot 05c-vpn-sin-bloquear 1
 for i in 1 2 3; do adb shell input keyevent KEYCODE_BACK; sleep 1; done
 app
 
+# Batería: que Android no cierre Shomer (Ajustes › Apps › Shomer › Uso de batería de la app).
+adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:$PKG >/dev/null; sleep 3
+demo; shot b1-info-app 2
+ui tap '(Uso de batería|Batería)' && shot b2-bateria 3
+ui tap '^Sin restricciones$' 0 && shot b3-sin-restricciones 2
+app
+
 # Filtro de imágenes: permiso de superposición y de compartir pantalla
 ui tap 'Mostrar sobre otras apps' && shot 06-mostrar-sobre-apps 3
 ui tap 'Shomer' 0 >/dev/null 2>&1; ui tap '(Permitir|Allow)' 0 && shot 06-mostrar-sobre-apps 2
@@ -112,9 +119,4 @@ shot 10-imagen-tapada 1
 adb shell input swipe 540 1600 540 1000 600; sleep 12
 shot 11-imagen-tapada 1
 
-# Batería: que Android no cierre Shomer (Ajustes › Apps › Shomer › Uso de batería de la app).
-adb shell am start -a android.settings.APPLICATION_DETAILS_SETTINGS -d package:$PKG >/dev/null; sleep 3
-demo; shot b1-info-app 2
-ui tap '(Uso de batería|Batería)' && shot b2-bateria 3
-ui tap '^Sin restricciones$' 0 && shot b3-sin-restricciones 2
 ls -la "$OUT"
